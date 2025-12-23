@@ -10,3 +10,9 @@ spring:
     # properties:
     #   hibernate:
     #     format_sql: true
+
+  data:
+    redis:
+      host: 168.107.59.168
+      port: 6379
+
