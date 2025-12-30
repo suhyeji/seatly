@@ -2,6 +2,8 @@ package com.seatly.seatly.controller;
 
 import java.util.List;
 
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,11 +21,13 @@ public class UsersController {
 
   private final UserService userService;
 
+  @GetMapping
   public List<UserTimeInfo> getUsersTimeInfo(@RequestParam Long studyCafeId) {
     return userService.getUsersTimeInfo(studyCafeId);
   }
 
-  public UserInfo getUserInfo(@RequestParam Long userId) {
+  @GetMapping(path = "/{userId}")
+  public UserInfo getUserInfo(@PathVariable Long userId) {
     return userService.getUserInfo(userId);
   }
 
