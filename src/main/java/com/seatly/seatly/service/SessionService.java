@@ -4,16 +4,16 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.seatly.seatly.dto.session.SessionDto;
+import com.seatly.seatly.dto.session.SessionInfo;
 
 @Service
 public class SessionService {
 
-  public List<SessionDto> getSessions() {
+  public List<SessionInfo> getSessions() {
     return null;
   }
 
-  public SessionDto startSession(Long id, SessionDto body) {
+  public SessionInfo startSession(Long id, SessionInfo body) {
     // session 상태 변경
     // TODO: 관리자 계정 확인 -> 관리자는 관리자의 studycafe seat의 세션만 종료할 수 있음
     // TODO: user 계정 확인 -> 본인 세션만 종료 가능해야함
