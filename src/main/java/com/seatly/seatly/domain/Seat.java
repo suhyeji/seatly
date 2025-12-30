@@ -24,8 +24,8 @@ public class Seat {
   @JoinColumn(name = "study_cafe_id", nullable = false)
   private StudyCafe studyCafe;
 
-  @Column(nullable = false)
-  private Integer seatNumber;
+  @Column(length = 50, nullable = false)
+  private String name;
 
   @Column(nullable = false)
   private String position;

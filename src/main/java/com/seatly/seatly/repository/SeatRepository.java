@@ -16,9 +16,9 @@ public interface SeatRepository extends JpaRepository<Seat, Long> {
       Long studyCafeId,
       SeatStatus status);
 
-  Optional<Seat> findByStudyCafeIdAndSeatNumber(
+  Optional<Seat> findByStudyCafeIdAndName(
       Long studyCafeId,
-      Integer seatNumber);
+      String name);
 
   long countByStudyCafeId(Long studyCafeId);
 
