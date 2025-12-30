@@ -16,7 +16,7 @@ public interface UserTimePassRepository extends JpaRepository<UserTimePass, User
   List<UserTimePass> findByUserId(Long userId);
 
   @Query("""
-          select new com.seatly.seatly.domain.timepass.dto.UserTimePassInfo(
+          select new com.seatly.seatly.dto.user.UserTimePassInfo(
               u.id,
               u.name,
               utp.studyCafe.id,

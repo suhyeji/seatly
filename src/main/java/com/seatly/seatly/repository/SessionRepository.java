@@ -30,7 +30,7 @@ public interface SessionRepository
   long countByStudyCafeId(Long studyCafeId);
 
   @Query("""
-          select new com.seatly.seatly.domain.session.dto.SessionInfo(
+          select new com.seatly.seatly.dto.session.SessionInfo(
               s.id,
               seat.id,
               seat.studyCafe.id,
