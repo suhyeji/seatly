@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+import com.seatly.seatly.domain.enums.UserLoginType;
 import com.seatly.seatly.domain.enums.UserRole;
 
 @Getter
@@ -41,5 +42,5 @@ public class User {
   private UserRole role;
 
   @Column(length = 50)
-  private String lastLoginType;
+  private UserLoginType lastLoginType;
 }

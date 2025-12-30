@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import com.seatly.seatly.domain.enums.EFacility;
+import com.seatly.seatly.domain.enums.Facility;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 
 @Getter
@@ -36,7 +36,7 @@ public class StudyCafe {
 
   @Type(JsonType.class)
   @Column(columnDefinition = "jsonb")
-  private List<EFacility> facilities;
+  private List<Facility> facilities;
 
   @Column(length = 100)
   private String openingHours;
