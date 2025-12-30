@@ -8,4 +8,6 @@ public interface SessionRepositoryCustom {
 
   List<Session> findByStudyCafeId(Long studyCafeId);
 
+  long countByStudyCafeId(Long studyCafeId);
+
 }

@@ -19,4 +19,8 @@ public class SessionStoreService {
     return store.findByStudyCafeId(studyCafeId);
   }
 
+  public long getSessionCountByStudyCafeId(Long studyCafeId) {
+    return store.countByStudyCafeId(studyCafeId);
+  }
+
 }

@@ -22,4 +22,6 @@ public interface SessionRepository
   List<Session> findByUserId(Long userId);
 
   List<Session> findByStudyCafeId(Long studyCafeId);
+
+  long countByStudyCafeId(Long studyCafeId);
 }

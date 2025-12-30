@@ -25,4 +25,14 @@ public class SessionRepositoryCustomImpl implements SessionRepositoryCustom {
         .fetch();
   }
 
+  @Override
+  public long countByStudyCafeId(Long studyCafeId) {
+    return queryFactory
+        .select(session.count())
+        .from(session)
+        .join(session.seat, seat)
+        .where(seat.studyCafe.id.eq(studyCafeId))
+        .fetchOne();
+  }
+
 }
