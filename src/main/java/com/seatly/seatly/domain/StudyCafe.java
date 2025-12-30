@@ -1,9 +1,5 @@
 package com.seatly.seatly.domain;
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -11,7 +7,16 @@ import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.seatly.seatly.domain.enums.Facility;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 
-@Getter
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
 @NoArgsConstructor
 @Entity
 @Table(name = "study_cafe")

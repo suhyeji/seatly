@@ -17,4 +17,8 @@ public class UserStoreService {
     return store.findById(id).orElse(null);
   }
 
+  public User getNullableUserInfoByEmail(String email) {
+    return store.findByEmail(email).orElse(null);
+  }
+
 }

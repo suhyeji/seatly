@@ -4,54 +4,134 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.seatly.seatly.dto.studycafe.StudyCafeDetailDto;
+import com.seatly.seatly.domain.StudyCafe;
+import com.seatly.seatly.domain.User;
+import com.seatly.seatly.domain.UserStudyCafeLink;
+import com.seatly.seatly.domain.enums.UserCafeLinkType;
+import com.seatly.seatly.domain.enums.UserRole;
+import com.seatly.seatly.domain.keys.UserTimePassId;
+import com.seatly.seatly.dto.studycafe.StudyCafeDetail;
 import com.seatly.seatly.dto.studycafe.StudyCafeDetailPost;
-import com.seatly.seatly.dto.studycafe.StudyCafeSummaryDto;
+import com.seatly.seatly.dto.studycafe.StudyCafeSummary;
 import com.seatly.seatly.dto.studycafe.StudyCafeUsage;
+import com.seatly.seatly.store.SeatStoreService;
+import com.seatly.seatly.store.SessionStoreService;
+import com.seatly.seatly.store.StudyCafeStoreService;
+import com.seatly.seatly.store.UserStoreService;
+import com.seatly.seatly.store.UserStudyCafeLinkStoreService;
+import com.seatly.seatly.store.UserTimePassStoreService;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class StudyCafeService {
 
-  public List<StudyCafeSummaryDto> getStudySummaries() {
-    return null;
+  private final StudyCafeStoreService storeService;
+  private final SeatStoreService seatStoreService;
+  private final SessionStoreService sessionStoreService;
+  private final UserStoreService userStoreService;
+  private final UserStudyCafeLinkStoreService linkStoreService;
+  private final UserTimePassStoreService userTimePassStoreService;
+
+  public List<StudyCafeSummary> getStudySummaries() {
+    return storeService.getStudyCafes().stream()
+        .map(StudyCafeSummary::new)
+        .toList();
   }
 
-  public StudyCafeDetailDto getStudyCafeDetail(Long id) {
-    return null;
+  public StudyCafeDetail getStudyCafeDetail(Long id) {
+    return new StudyCafeDetail(storeService.getNullableStudyCafeInfo(id));
   }
 
-  public List<StudyCafeSummaryDto> getAdminStudySummaries() {
-    // TODO: 현재 로그인 한 관리자 계정 확인
-    return null;
+  public List<StudyCafeSummary> getAdminStudySummaries(String email) {
+    User user = userStoreService.getNullableUserInfoByEmail(email);
+
+    if (user.getRole() != UserRole.ADMIN) {
+      // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
+      throw new IllegalArgumentException("해당 유저는 관리자 계정이 아닙니다.");
+    }
+
+    List<UserStudyCafeLink> links = linkStoreService.getUserStudyCafeLinkByUserIdAndLinkType(
+        user.getId(),
+        UserCafeLinkType.ADMIN);
+    return links.stream()
+        .map(UserStudyCafeLink::getStudyCafe)
+        .map(StudyCafeSummary::new)
+        .toList();
   }
 
-  public StudyCafeUsage getStudyCafeUsage(Long id) {
-    return null;
+  public StudyCafeUsage getStudyCafeUsage(Long studyCafeId) {
+    // 전체 seat 갯수
+    int totalSeats = seatStoreService.getSeatsByStudyCafeId(studyCafeId).size();
+    // 전체 세션 갯수
+    int totalSessions = sessionStoreService.getEntitiesByStudyCafeId(studyCafeId).size();
+    return new StudyCafeUsage(totalSeats, totalSessions);
   }
 
-  public StudyCafeDetailDto addStudyCafe(StudyCafeDetailPost body) {
-    // TODO: 관리자 계정 확인
-    return null;
+  public void addStudyCafe(String email, StudyCafeDetailPost body) {
+    User user = userStoreService.getNullableUserInfoByEmail(email);
+
+    if (user.getRole() != UserRole.ADMIN) {
+      // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
+      throw new IllegalArgumentException("해당 유저는 관리자 계정이 아닙니다.");
+    }
+
+    storeService.save(body.insert());
   }
 
-  public StudyCafeDetailDto updateStudyCafe(Long id, StudyCafeDetailPost body) {
-    // TODO: 관리자 계정 확인
-    return null;
+  public void updateStudyCafe(String email, Long studyCafeId, StudyCafeDetailPost body) {
+    User user = userStoreService.getNullableUserInfoByEmail(email);
+
+    if (user.getRole() != UserRole.ADMIN) {
+      // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
+      throw new IllegalArgumentException("해당 유저는 관리자 계정이 아닙니다.");
+    }
+
+    StudyCafe entity = storeService.getNullableStudyCafeInfo(studyCafeId);
+    storeService.save(body.update(entity));
   }
 
-  public void deleteStudyCafe(Long id) {
-    // TODO: 관리자 계정 확인
+  public void deleteStudyCafe(String email, Long id) {
+    User user = userStoreService.getNullableUserInfoByEmail(email);
+
+    if (user.getRole() != UserRole.ADMIN) {
+      // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
+      throw new IllegalArgumentException("해당 유저는 관리자 계정이 아닙니다.");
+    }
+
+    storeService.deleteById(id);
   }
 
-  public void addFavoriteStudyCafe(Long id) {
-    // TODO: user 계정 확인
+  // 즐겨찾는 스터디카페 추가
+  public void addFavoriteStudyCafe(String email, Long id) {
+    User user = userStoreService.getNullableUserInfoByEmail(email);
+    StudyCafe studyCafe = storeService.getNullableStudyCafeInfo(id);
+
+    UserStudyCafeLink link = new UserStudyCafeLink();
+    link.setStudyCafe(studyCafe);
+    link.setUser(user);
+    link.setLinkType(UserCafeLinkType.FAVORITE);
+
+    linkStoreService.save(link);
   }
 
-  public void deleteFavoriteStudyCafe(Long id) {
-    // TODO: user 계정 확인
+  // 즐겨찾는 스터디카페 삭제
+  public void deleteFavoriteStudyCafe(String email, Long id) {
+    User user = userStoreService.getNullableUserInfoByEmail(email);
+    linkStoreService.deleteByStudyCafeIdAndUserId(id, user.getId());
   }
 
-  public void deleteUserStudyCafeTime(Long id, Long userId) {
-    // TODO: 관리자 계정 확인
+  // 관리자가 사용자의 studycafe 남은 시간 삭제
+  public void deleteUserStudyCafeTime(String email, Long id, Long userId) {
+    User user = userStoreService.getNullableUserInfoByEmail(email);
+
+    if (user.getRole() != UserRole.ADMIN) {
+      // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
+      throw new IllegalArgumentException("해당 유저는 관리자 계정이 아닙니다.");
+    }
+
+    UserTimePassId timePassId = new UserTimePassId(id, userId);
+    userTimePassStoreService.deleteByTimePassId(timePassId);
   }
 }

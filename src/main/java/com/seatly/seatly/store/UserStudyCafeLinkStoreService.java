@@ -31,4 +31,18 @@ public class UserStudyCafeLinkStoreService {
         .orElse(null);
   }
 
+  public void save(UserStudyCafeLink userStudyCafeLink) {
+    store.save(userStudyCafeLink);
+  }
+
+  public void deleteByStudyCafeIdAndUserId(Long studyCafeId, Long userId) {
+    UserStudyCafeLink link = store.findByStudyCafeIdAndUserId(studyCafeId, userId).orElse(null);
+
+    if (link == null) {
+      return;
+    }
+
+    store.deleteById(link.getId());
+  }
+
 }

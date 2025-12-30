@@ -15,8 +15,8 @@ public class SessionStoreService {
 
   private final SessionRepository store;
 
-  // public List<Session> getSessionsByUserId(Long userId) {
-  // return store.findAllByUserId(userId);
-  // }
+  public List<Session> getEntitiesByStudyCafeId(Long studyCafeId) {
+    return store.findByStudyCafeId(studyCafeId);
+  }
 
 }

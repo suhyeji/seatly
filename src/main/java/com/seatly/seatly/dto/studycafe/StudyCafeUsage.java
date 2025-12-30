@@ -7,7 +7,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class StudyCafeUsage {
 
-  private Long totalCount;
-  private Long useCount;
+  private int totalCount;
+  private int useCount;
 
 }

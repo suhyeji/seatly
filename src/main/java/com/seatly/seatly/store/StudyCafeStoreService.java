@@ -23,4 +23,12 @@ public class StudyCafeStoreService {
     return store.findById(id).orElse(null);
   }
 
+  public void save(StudyCafe studyCafe) {
+    store.save(studyCafe);
+  }
+
+  public void deleteById(Long id) {
+    store.deleteById(id);
+  }
+
 }
