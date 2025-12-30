@@ -7,10 +7,11 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class SessionDto {
+public class SessionInfo {
 
   private Long id;
   private int seatId;
+  private Long userId;
   private SessionStatus status;
   private long startTime;
 

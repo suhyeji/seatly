@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.seatly.seatly.dto.session.SessionDto;
+import com.seatly.seatly.dto.session.SessionInfo;
 import com.seatly.seatly.service.SessionService;
 
 import lombok.RequiredArgsConstructor;
@@ -26,12 +26,12 @@ public class SessionController {
   private final SessionService sessionService;
 
   @GetMapping
-  public List<SessionDto> getSessions() {
+  public List<SessionInfo> getSessions() {
     return sessionService.getSessions();
   }
 
   @PatchMapping("/{id}/start")
-  public SessionDto startSession(@PathVariable Long id, @RequestBody SessionDto body) {
+  public SessionInfo startSession(@PathVariable Long id, @RequestBody SessionInfo body) {
     return sessionService.startSession(id, body);
   }
 

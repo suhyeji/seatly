@@ -4,8 +4,8 @@ import java.util.List;
 
 import com.seatly.seatly.domain.enums.UserLoginType;
 import com.seatly.seatly.domain.enums.UserRole;
-import com.seatly.seatly.dto.SessionInfo;
 import com.seatly.seatly.dto.TimePass;
+import com.seatly.seatly.dto.session.SessionInfo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
