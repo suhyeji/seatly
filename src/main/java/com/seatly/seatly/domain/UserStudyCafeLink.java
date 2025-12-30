@@ -6,13 +6,15 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+import com.seatly.seatly.domain.enums.UserCafeLinkType;
+
 @Getter
 @NoArgsConstructor
 @Entity
-@Table(name = "study_cafe_member", uniqueConstraints = {
+@Table(name = "study_cafe_link", uniqueConstraints = {
     @UniqueConstraint(columnNames = { "study_cafe_id", "user_id" })
 })
-public class StudyCafeMember {
+public class UserStudyCafeLink {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,6 +27,10 @@ public class StudyCafeMember {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "user_id", nullable = false)
   private User user;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private UserCafeLinkType linkType;
 
   @Column(nullable = false, updatable = false)
   private LocalDateTime createdAt = LocalDateTime.now();

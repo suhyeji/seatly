@@ -2,14 +2,14 @@ package com.seatly.seatly.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.seatly.seatly.domain.StudyCafeMember;
+import com.seatly.seatly.domain.UserStudyCafeLink;
 
 import java.util.Optional;
 
-public interface StudyCafeMemberRepository
-    extends JpaRepository<StudyCafeMember, Long> {
+public interface UserStudyCafeLinkRepository
+    extends JpaRepository<UserStudyCafeLink, Long> {
 
-  Optional<StudyCafeMember> findByStudyCafeIdAndUserId(
+  Optional<UserStudyCafeLink> findByStudyCafeIdAndUserId(
       Long studyCafeId,
       Long userId);
 

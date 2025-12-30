@@ -27,7 +27,7 @@ public class Seat {
   @Column(nullable = false)
   private Integer seatNumber;
 
-  @Column(length = 20, nullable = false)
+  @Column(nullable = false)
   private String position;
 
   @Enumerated(EnumType.STRING)
