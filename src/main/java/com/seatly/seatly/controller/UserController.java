@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.seatly.seatly.dto.user.UserInfo;
+import com.seatly.seatly.dto.user.UserInfoDetail;
 import com.seatly.seatly.dto.user.UserPasswordPut;
 import com.seatly.seatly.dto.user.UserPatch;
 import com.seatly.seatly.dto.user.UserPost;
@@ -21,24 +21,24 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/user")
 @RequiredArgsConstructor
 public class UserController {
 
   private final UserService userService;
 
   @PostMapping
-  public UserInfo signIn(@RequestBody UserPost userPost) {
+  public UserInfoDetail signIn(@RequestBody UserPost userPost) {
     return userService.signIn(userPost);
   }
 
   @GetMapping
-  public UserInfo getUserInfo(HttpServletRequest request) {
-    return userService.getUserInfo(request);
+  public UserInfoDetail getUserInfoDetail(HttpServletRequest request) {
+    return userService.getUserInfoDetail(request);
   }
 
   @PatchMapping
-  public UserInfo updateUserInfo(HttpServletRequest request,
+  public UserInfoDetail updateUserInfo(HttpServletRequest request,
       @RequestBody UserPatch userPatch) {
     return userService.updateUserInfo(request, userPatch);
   }
