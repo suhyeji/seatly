@@ -41,6 +41,7 @@ public class User {
   @Column(nullable = false, length = 20)
   private UserRole role;
 
+  @Enumerated(EnumType.STRING)
   @Column(length = 50)
   private UserLoginType lastLoginType;
 }
