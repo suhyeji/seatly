@@ -27,6 +27,8 @@ public interface SessionRepository
 
   List<Session> findByStudyCafeId(Long studyCafeId);
 
+  long countByStudyCafeId(Long studyCafeId);
+
   @Query("""
           select new com.seatly.seatly.domain.session.dto.SessionInfo(
               s.id,

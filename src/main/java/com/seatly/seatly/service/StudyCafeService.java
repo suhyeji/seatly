@@ -62,11 +62,10 @@ public class StudyCafeService {
   }
 
   public StudyCafeUsage getStudyCafeUsage(Long studyCafeId) {
-    // 전체 seat 갯수
-    int totalSeats = seatStoreService.getSeatsByStudyCafeId(studyCafeId).size();
-    // 전체 세션 갯수
-    int totalSessions = sessionStoreService.getEntitiesByStudyCafeId(studyCafeId).size();
-    return new StudyCafeUsage(totalSeats, totalSessions);
+    // 전체 seat 갯수 / 전체 세션 갯수
+    return new StudyCafeUsage(
+        seatStoreService.getSeatsCountByStudyCafeId(studyCafeId),
+        sessionStoreService.getSessionCountByStudyCafeId(studyCafeId));
   }
 
   public void addStudyCafe(String email, StudyCafeDetailPost body) {
