@@ -11,7 +11,7 @@ import com.seatly.seatly.domain.enums.UserCafeLinkType;
 @Getter
 @NoArgsConstructor
 @Entity
-@Table(name = "study_cafe_link", uniqueConstraints = {
+@Table(name = "user_study_cafe_link", uniqueConstraints = {
     @UniqueConstraint(columnNames = { "study_cafe_id", "user_id" })
 })
 public class UserStudyCafeLink {
