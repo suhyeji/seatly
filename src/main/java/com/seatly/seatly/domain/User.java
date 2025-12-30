@@ -21,6 +21,18 @@ public class User {
   @Column(length = 50, nullable = false)
   private String name;
 
+  @Column(length = 50, nullable = false)
+  private String password;
+
+  @Column(length = 50)
+  private String email;
+
+  @Column(length = 50)
+  private String phone;
+
+  @Column(length = 100)
+  private String imageUrl;
+
   @Column(nullable = false, updatable = false)
   private LocalDateTime createdAt = LocalDateTime.now();
 
