@@ -2,6 +2,7 @@ package com.seatly.seatly.controller;
 
 import java.util.List;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.seatly.seatly.auth.CustomUserDetails;
 import com.seatly.seatly.dto.seat.SeatInfo;
 import com.seatly.seatly.dto.seat.SeatPatch;
 import com.seatly.seatly.dto.seat.SeatPost;
@@ -26,23 +28,34 @@ public class SeatController {
   private final SeatService seatService;
 
   @GetMapping
-  public List<SeatInfo> getSeats(@PathVariable Long studyCafeId) {
-    return seatService.getSeats(studyCafeId);
+  public List<SeatInfo> getSeats(
+      @AuthenticationPrincipal CustomUserDetails user,
+      @PathVariable Long studyCafeId) {
+    return seatService.getSeats(user.getId(), studyCafeId);
   }
 
   @PostMapping
-  public void addSeat(@PathVariable Long studyCafeId, @RequestBody List<SeatPost> body) {
-    seatService.addSeat(studyCafeId, body);
+  public void addSeat(
+      @AuthenticationPrincipal CustomUserDetails user,
+      @PathVariable Long studyCafeId,
+      @RequestBody List<SeatPost> body) {
+    seatService.addSeat(user.getId(), studyCafeId, body);
   }
 
   @PatchMapping
-  public void updateSeats(@PathVariable Long studyCafeId, @RequestBody List<SeatPatch> body) {
-    seatService.updateSeats(studyCafeId, body);
+  public void updateSeats(
+      @AuthenticationPrincipal CustomUserDetails user,
+      @PathVariable Long studyCafeId,
+      @RequestBody List<SeatPatch> body) {
+    seatService.updateSeats(user.getId(), body);
   }
 
   @DeleteMapping("/{id}")
-  public void deleteSeat(@PathVariable Long studyCafeId, @PathVariable Long id) {
-    seatService.deleteSeat(studyCafeId, id);
+  public void deleteSeat(
+      @AuthenticationPrincipal CustomUserDetails user,
+      @PathVariable Long studyCafeId,
+      @PathVariable Long id) {
+    seatService.deleteSeat(user.getId(), id);
   }
 
 }

@@ -1,14 +1,14 @@
 package com.seatly.seatly.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 import com.seatly.seatly.domain.enums.SeatStatus;
 
-@Getter
+@Data
 @NoArgsConstructor
 @Entity
 @Table(name = "seat", uniqueConstraints = {

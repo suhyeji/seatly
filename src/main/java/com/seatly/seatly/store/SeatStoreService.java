@@ -23,4 +23,16 @@ public class SeatStoreService {
     return store.countByStudyCafeId(studyCafeId);
   }
 
+  public Seat getNullableSeatInfo(Long id) {
+    return store.findById(id).orElse(null);
+  }
+
+  public void save(Seat seat) {
+    store.save(seat);
+  }
+
+  public void deleteById(Long id) {
+    store.deleteById(id);
+  }
+
 }
