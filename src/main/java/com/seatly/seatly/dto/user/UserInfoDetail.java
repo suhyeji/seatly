@@ -20,7 +20,6 @@ import lombok.ToString;
 @AllArgsConstructor
 public class UserInfoDetail extends UserInfo {
 
-  private UserLoginType lastLoginType;
   private List<Long> favoriteCafeIds;
   private List<SessionInfo> sessions;
   private List<TimePass> timePasses;

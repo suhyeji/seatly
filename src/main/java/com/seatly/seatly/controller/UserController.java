@@ -29,31 +29,32 @@ public class UserController {
   private final UserService userService;
 
   @PostMapping
-  public UserInfoDetail signUp(@RequestBody UserPost userPost) {
-    return userService.signUp(userPost);
+  @ResponseStatus(HttpStatus.CREATED)
+  public void signUp(@RequestBody UserPost userPost) {
+    userService.signUp(userPost);
   }
 
   @GetMapping
   public UserInfoDetail getUserInfoDetail(@AuthenticationPrincipal CustomUserDetails user) {
-    return userService.getUserInfoDetail(user.getEmail());
+    return userService.getUserInfoDetail(user.getId());
   }
 
   @PatchMapping
   public UserInfoDetail updateUserInfo(@AuthenticationPrincipal CustomUserDetails user,
       @RequestBody UserPatch userPatch) {
-    return userService.updateUserInfo(user.getEmail(), userPatch);
+    return userService.updateUserInfo(user.getId(), userPatch);
   }
 
   @PutMapping
   public void updateUserPassword(@AuthenticationPrincipal CustomUserDetails user,
       @RequestBody UserPasswordPut passwordPut) {
-    userService.updatePassword(user.getEmail(), passwordPut);
+    userService.updatePassword(user.getId(), passwordPut);
   }
 
   @DeleteMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteUser(@AuthenticationPrincipal CustomUserDetails user) {
-    userService.deleteUser(user.getEmail());
+    userService.deleteUser(user.getId());
   }
 
 }

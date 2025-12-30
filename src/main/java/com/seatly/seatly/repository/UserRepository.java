@@ -8,6 +8,8 @@ import com.seatly.seatly.domain.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
+  public Optional<User> findById(String email);
+
   public Optional<User> findByEmail(String email);
 
 }

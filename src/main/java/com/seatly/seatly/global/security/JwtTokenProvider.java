@@ -31,15 +31,15 @@ public class JwtTokenProvider {
 
   /* ===================== 토큰 생성 ===================== */
 
-  public String createAccessToken(Long email, String username, String role) {
+  public String createAccessToken(Long id, String username, String role) {
     Date now = new Date();
     Date expiry = new Date(
         now.getTime() + jwtProperties.getAccessTokenExpireMs());
 
     return Jwts.builder()
-        .setSubject(email.toString())
-        .claim("role", role)
+        .setSubject(id.toString())
         .claim("username", username)
+        .claim("role", role)
         .setIssuedAt(now)
         .setExpiration(expiry)
         .signWith(key, SignatureAlgorithm.HS256)
@@ -59,8 +59,8 @@ public class JwtTokenProvider {
 
   /* ===================== 정보 추출 ===================== */
 
-  public String getEmail(String token) {
-    return String.valueOf(parseClaims(token).getSubject());
+  public Long getId(String token) {
+    return Long.valueOf(parseClaims(token).getSubject());
   }
 
   public String getUsername(String token) {

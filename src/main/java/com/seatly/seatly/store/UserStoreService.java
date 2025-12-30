@@ -1,10 +1,14 @@
 package com.seatly.seatly.store;
 
+import java.util.Optional;
+
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.seatly.seatly.domain.User;
 import com.seatly.seatly.repository.UserRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -17,8 +21,26 @@ public class UserStoreService {
     return store.findById(id).orElse(null);
   }
 
+  public User getUserInfoOrThrow(Long id) {
+    return store.findById(id).orElseThrow(
+        () -> new UsernameNotFoundException("User not found: " + id));
+  }
+
+  public Optional<User> findById(Long id) {
+    return store.findById(id);
+  }
+
+  @Transactional
+  public User save(User model) {
+    return store.save(model);
+  }
+
   public User getNullableUserInfoByEmail(String email) {
     return store.findByEmail(email).orElse(null);
+  }
+
+  public void deleteById(Long id) {
+    store.deleteById(id);
   }
 
 }

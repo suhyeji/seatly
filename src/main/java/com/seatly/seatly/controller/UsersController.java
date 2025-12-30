@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.seatly.seatly.dto.user.UserInfo;
-import com.seatly.seatly.dto.user.UserTimeInfo;
+import com.seatly.seatly.dto.user.UserTimePassInfo;
 import com.seatly.seatly.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ public class UsersController {
   private final UserService userService;
 
   @GetMapping
-  public List<UserTimeInfo> getUsersTimeInfo(@RequestParam Long studyCafeId) {
+  public List<UserTimePassInfo> getUsersTimeInfo(@RequestParam Long studyCafeId) {
     return userService.getUsersTimeInfo(studyCafeId);
   }
 

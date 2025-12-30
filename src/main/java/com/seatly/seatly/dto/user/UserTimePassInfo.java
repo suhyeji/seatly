@@ -7,10 +7,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserTimeInfo {
+public class UserTimePassInfo {
 
   private Long userId;
   private String userName;
+  private Long studyCafeId;
   private Long leftTime;
+  private Long totalTime;
 
 }

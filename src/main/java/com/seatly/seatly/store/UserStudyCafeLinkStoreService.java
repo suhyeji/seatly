@@ -26,6 +26,12 @@ public class UserStudyCafeLinkStoreService {
     return store.findAllByUserIdAndLinkType(userId, linkType);
   }
 
+  public List<Long> getStudyCafeIdsByUserIdAndLinkType(
+      Long userId,
+      UserCafeLinkType linkType) {
+    return store.findStudyCafeIdsByUserIdAndLinkType(userId, linkType);
+  }
+
   public UserStudyCafeLink getUserStudyCafeLink(Long studyCafeId, Long userId) {
     return store.findByStudyCafeIdAndUserId(studyCafeId, userId)
         .orElse(null);

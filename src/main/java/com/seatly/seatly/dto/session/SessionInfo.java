@@ -10,9 +10,10 @@ import lombok.Data;
 public class SessionInfo {
 
   private Long id;
-  private int seatId;
+  private Long seatId;
+  private Long studyCafeId;
   private Long userId;
   private SessionStatus status;
-  private long startTime;
+  private Long startTime;
 
 }

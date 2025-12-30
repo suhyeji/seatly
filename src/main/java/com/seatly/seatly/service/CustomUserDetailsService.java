@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.seatly.seatly.auth.CustomUserDetails;
 import com.seatly.seatly.domain.User;
-import com.seatly.seatly.repository.UserRepository;
+import com.seatly.seatly.store.UserStoreService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -15,14 +15,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
-  private final UserRepository userRepository;
+  private final UserStoreService userStoreService;
 
   @Override
-  public UserDetails loadUserByUsername(String email)
+  public UserDetails loadUserByUsername(String userId)
       throws UsernameNotFoundException {
 
-    User user = userRepository.findByEmail(email)
-        .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
+    User user = userStoreService.findById(Long.valueOf(userId))
+        .orElseThrow(() -> new UsernameNotFoundException("User not found: " + userId));
 
     return new CustomUserDetails(user);
   }

@@ -15,6 +15,7 @@ public class UserPost {
   private String password;
   private String name;
   private String phone;
+  private String imageUrl;
   private UserRole role;
 
 }
