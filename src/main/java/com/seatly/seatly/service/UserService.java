@@ -12,16 +12,14 @@ import com.seatly.seatly.dto.user.UserPatch;
 import com.seatly.seatly.dto.user.UserPost;
 import com.seatly.seatly.dto.user.UserTimeInfo;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 @Service
 public class UserService {
 
-  public UserInfoDetail signIn(UserPost userPost) {
+  public UserInfoDetail signUp(UserPost userPost) {
     return new UserInfoDetail();
   }
 
-  public UserInfoDetail getUserInfoDetail(HttpServletRequest request) {
+  public UserInfoDetail getUserInfoDetail(String email) {
     return new UserInfoDetail();
   }
 
@@ -35,15 +33,15 @@ public class UserService {
     return new ArrayList<>();
   }
 
-  public UserInfoDetail updateUserInfo(HttpServletRequest request, UserPatch userPatch) {
+  public UserInfoDetail updateUserInfo(String email, UserPatch userPatch) {
     return new UserInfoDetail();
   }
 
-  public void updatePassword(HttpServletRequest request, UserPasswordPut passwordPut) {
+  public void updatePassword(String email, UserPasswordPut passwordPut) {
     //
   }
 
-  public void deleteUser(HttpServletRequest request) {
+  public void deleteUser(String email) {
     // TODO: implement
   }
 

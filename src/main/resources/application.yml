@@ -21,3 +21,6 @@ spring:
       host: 168.107.59.168
       port: 6379
 
+jwt:
+  secret: this-is-very-secret-key-change-it
+  access-token-expire-ms: 3600000 # 1시간
