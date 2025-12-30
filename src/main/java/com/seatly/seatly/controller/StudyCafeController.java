@@ -41,8 +41,8 @@ public class StudyCafeController {
   }
 
   @GetMapping("/admin")
-  public List<StudyCafeSummary> getAdminStudySummaries(@AuthenticationPrincipal CustomUserDetails user) {
-    return studyCafeService.getAdminStudySummaries(user.getEmail());
+  public List<StudyCafeSummary> getAdminStudyCafeSummaries(@AuthenticationPrincipal CustomUserDetails user) {
+    return studyCafeService.getAdminStudyCafeSummaries(user.getId());
   }
 
   @GetMapping("/{id}/usage")
@@ -55,7 +55,7 @@ public class StudyCafeController {
   public void addStudyCafe(
       @AuthenticationPrincipal CustomUserDetails user,
       @RequestBody StudyCafeDetailPost body) {
-    studyCafeService.addStudyCafe(user.getEmail(), body);
+    studyCafeService.addStudyCafe(user.getId(), body);
   }
 
   @PatchMapping("/{id}")
@@ -63,7 +63,7 @@ public class StudyCafeController {
       @AuthenticationPrincipal CustomUserDetails user,
       @PathVariable Long id,
       @RequestBody StudyCafeDetailPost body) {
-    studyCafeService.updateStudyCafe(user.getEmail(), id, body);
+    studyCafeService.updateStudyCafe(user.getId(), id, body);
   }
 
   @DeleteMapping("/{id}")
@@ -71,21 +71,21 @@ public class StudyCafeController {
   public void deleteStudyCafe(
       @AuthenticationPrincipal CustomUserDetails user,
       @PathVariable Long id) {
-    studyCafeService.deleteStudyCafe(user.getEmail(), id);
+    studyCafeService.deleteStudyCafe(user.getId(), id);
   }
 
   @PostMapping("/{id}/favorite")
   public void addFavoriteStudyCafe(
       @AuthenticationPrincipal CustomUserDetails user,
       @PathVariable Long id) {
-    studyCafeService.addFavoriteStudyCafe(user.getEmail(), id);
+    studyCafeService.addFavoriteStudyCafe(user.getId(), id);
   }
 
   @DeleteMapping("/{id}/favorite")
   public void deleteFavoriteStudyCafe(
       @AuthenticationPrincipal CustomUserDetails user,
       @PathVariable Long id) {
-    studyCafeService.deleteFavoriteStudyCafe(user.getEmail(), id);
+    studyCafeService.deleteFavoriteStudyCafe(user.getId(), id);
   }
 
   @DeleteMapping("/{id}/users/{userId}/time")
@@ -93,7 +93,7 @@ public class StudyCafeController {
       @AuthenticationPrincipal CustomUserDetails user,
       @PathVariable Long id,
       @PathVariable Long userId) {
-    studyCafeService.deleteUserStudyCafeTime(user.getEmail(), id, userId);
+    studyCafeService.deleteUserStudyCafeTime(user.getId(), id, userId);
   }
 
 }

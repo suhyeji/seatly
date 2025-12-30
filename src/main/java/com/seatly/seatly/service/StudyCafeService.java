@@ -44,8 +44,8 @@ public class StudyCafeService {
     return new StudyCafeDetail(storeService.getNullableStudyCafeInfo(id));
   }
 
-  public List<StudyCafeSummary> getAdminStudySummaries(String email) {
-    User user = userStoreService.getNullableUserInfoByEmail(email);
+  public List<StudyCafeSummary> getAdminStudyCafeSummaries(Long userId) {
+    User user = userStoreService.getNullableUserInfo(userId);
 
     if (user.getRole() != UserRole.ADMIN) {
       // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
@@ -68,8 +68,8 @@ public class StudyCafeService {
         sessionStoreService.getSessionCountByStudyCafeId(studyCafeId));
   }
 
-  public void addStudyCafe(String email, StudyCafeDetailPost body) {
-    User user = userStoreService.getNullableUserInfoByEmail(email);
+  public void addStudyCafe(Long userId, StudyCafeDetailPost body) {
+    User user = userStoreService.getNullableUserInfo(userId);
 
     if (user.getRole() != UserRole.ADMIN) {
       // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
@@ -79,8 +79,8 @@ public class StudyCafeService {
     storeService.save(body.insert());
   }
 
-  public void updateStudyCafe(String email, Long studyCafeId, StudyCafeDetailPost body) {
-    User user = userStoreService.getNullableUserInfoByEmail(email);
+  public void updateStudyCafe(Long userId, Long studyCafeId, StudyCafeDetailPost body) {
+    User user = userStoreService.getNullableUserInfo(userId);
 
     if (user.getRole() != UserRole.ADMIN) {
       // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
@@ -91,8 +91,8 @@ public class StudyCafeService {
     storeService.save(body.update(entity));
   }
 
-  public void deleteStudyCafe(String email, Long id) {
-    User user = userStoreService.getNullableUserInfoByEmail(email);
+  public void deleteStudyCafe(Long userId, Long id) {
+    User user = userStoreService.getNullableUserInfo(userId);
 
     if (user.getRole() != UserRole.ADMIN) {
       // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
@@ -103,8 +103,8 @@ public class StudyCafeService {
   }
 
   // 즐겨찾는 스터디카페 추가
-  public void addFavoriteStudyCafe(String email, Long id) {
-    User user = userStoreService.getNullableUserInfoByEmail(email);
+  public void addFavoriteStudyCafe(Long userId, Long id) {
+    User user = userStoreService.getNullableUserInfo(userId);
     StudyCafe studyCafe = storeService.getNullableStudyCafeInfo(id);
 
     UserStudyCafeLink link = new UserStudyCafeLink();
@@ -116,14 +116,14 @@ public class StudyCafeService {
   }
 
   // 즐겨찾는 스터디카페 삭제
-  public void deleteFavoriteStudyCafe(String email, Long id) {
-    User user = userStoreService.getNullableUserInfoByEmail(email);
+  public void deleteFavoriteStudyCafe(Long userId, Long id) {
+    User user = userStoreService.getNullableUserInfo(userId);
     linkStoreService.deleteByStudyCafeIdAndUserId(id, user.getId());
   }
 
   // 관리자가 사용자의 studycafe 남은 시간 삭제
-  public void deleteUserStudyCafeTime(String email, Long id, Long userId) {
-    User user = userStoreService.getNullableUserInfoByEmail(email);
+  public void deleteUserStudyCafeTime(Long adminUserId, Long id, Long userId) {
+    User user = userStoreService.getNullableUserInfo(adminUserId);
 
     if (user.getRole() != UserRole.ADMIN) {
       // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
