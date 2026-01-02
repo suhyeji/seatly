@@ -1,10 +1,11 @@
 package com.seatly.seatly.domain;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.seatly.seatly.domain.enums.Facility;
+import com.seatly.seatly.global.Util;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 
 import jakarta.persistence.Column;
@@ -50,5 +51,6 @@ public class StudyCafe {
   private String description;
 
   @Column(nullable = false, updatable = false)
-  private LocalDateTime createdAt = LocalDateTime.now();
+  private OffsetDateTime createdAt = Util.now();
+
 }

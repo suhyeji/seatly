@@ -1,8 +1,9 @@
 package com.seatly.seatly.domain;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 import com.seatly.seatly.domain.enums.UserRole;
+import com.seatly.seatly.global.Util;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,11 +41,11 @@ public class User {
   @Column(length = 100)
   private String imageUrl;
 
-  @Column(nullable = false, updatable = false)
-  private LocalDateTime createdAt = LocalDateTime.now();
-
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
   private UserRole role;
+
+  @Column(nullable = false, updatable = false)
+  private OffsetDateTime createdAt = Util.now();
 
 }

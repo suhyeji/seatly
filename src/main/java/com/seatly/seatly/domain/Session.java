@@ -1,8 +1,9 @@
 package com.seatly.seatly.domain;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 import com.seatly.seatly.domain.enums.SessionStatus;
+import com.seatly.seatly.global.Util;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,8 +41,9 @@ public class Session {
   @Column(length = 20, nullable = false)
   private SessionStatus status;
 
-  private LocalDateTime startTime = LocalDateTime.now();
+  private OffsetDateTime startTime = Util.now();
 
   @Column(nullable = false, updatable = false)
-  private LocalDateTime createdAt = LocalDateTime.now();
+  private OffsetDateTime createdAt = Util.now();
+
 }

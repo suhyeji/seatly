@@ -1,6 +1,5 @@
 package com.seatly.seatly.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,7 +42,6 @@ public class UserService {
     user.setRole(model.getRole());
     user.setPassword(passwordEncoder.encode(model.getPassword()));
     user.setImageUrl(model.getImageUrl());
-    user.setCreatedAt(LocalDateTime.now());
     userStoreService.save(user);
   }
 

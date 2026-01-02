@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -19,7 +19,6 @@ import com.seatly.seatly.dto.session.SessionInfo;
 import com.seatly.seatly.service.SessionService;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
 
 @RestController
 @RequestMapping("/api/sessions")
@@ -34,8 +33,9 @@ public class SessionController {
   }
 
   @PatchMapping("/{id}/start")
-  public SessionInfo startSession(@PathVariable Long id, @RequestBody SessionInfo body) {
-    return service.startSession(id, body);
+  public SessionInfo startSession(@AuthenticationPrincipal CustomUserDetails user,
+      @PathVariable Long id) {
+    return service.startSession(user.getId(), id);
   }
 
   @DeleteMapping("/{id}")

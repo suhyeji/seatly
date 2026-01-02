@@ -1,8 +1,9 @@
 package com.seatly.seatly.domain;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 import com.seatly.seatly.domain.enums.UserCafeLinkType;
+import com.seatly.seatly.global.Util;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -44,5 +45,5 @@ public class UserStudyCafeLink {
   private UserCafeLinkType linkType;
 
   @Column(nullable = false, updatable = false)
-  private LocalDateTime createdAt = LocalDateTime.now();
+  private OffsetDateTime createdAt = Util.now();
 }

@@ -1,0 +1,45 @@
+ALTER TABLE seat
+  ALTER COLUMN updated_at
+  TYPE TIMESTAMP WITH TIME ZONE
+  USING updated_at AT TIME ZONE 'UTC';
+
+ALTER TABLE session
+  ALTER COLUMN start_time
+  TYPE TIMESTAMP WITH TIME ZONE
+  USING start_time AT TIME ZONE 'UTC';
+
+ALTER TABLE session
+  ALTER COLUMN created_at
+  TYPE TIMESTAMP WITH TIME ZONE
+  USING created_at AT TIME ZONE 'UTC';
+
+ALTER TABLE study_cafe
+  ALTER COLUMN created_at
+  TYPE TIMESTAMP WITH TIME ZONE
+  USING created_at AT TIME ZONE 'UTC';
+
+ALTER TABLE user_study_cafe_link
+  ALTER COLUMN created_at
+  TYPE TIMESTAMP WITH TIME ZONE
+  USING created_at AT TIME ZONE 'UTC';
+
+ALTER TABLE users
+  ALTER COLUMN created_at
+  TYPE TIMESTAMP WITH TIME ZONE
+  USING created_at AT TIME ZONE 'UTC';
+
+ALTER TABLE session
+  ALTER COLUMN created_at
+  SET DEFAULT (now() AT TIME ZONE 'UTC');
+
+ALTER TABLE study_cafe
+  ALTER COLUMN created_at
+  SET DEFAULT (now() AT TIME ZONE 'UTC');
+
+ALTER TABLE user_study_cafe_link
+  ALTER COLUMN created_at
+  SET DEFAULT (now() AT TIME ZONE 'UTC');
+
+ALTER TABLE users
+  ALTER COLUMN created_at
+  SET DEFAULT (now() AT TIME ZONE 'UTC');

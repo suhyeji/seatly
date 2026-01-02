@@ -1,6 +1,6 @@
 package com.seatly.seatly.service;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -14,6 +14,7 @@ import com.seatly.seatly.domain.enums.SeatEventType;
 import com.seatly.seatly.domain.enums.SessionStatus;
 import com.seatly.seatly.dto.seat.SeatEvent;
 import com.seatly.seatly.dto.session.SessionInfo;
+import com.seatly.seatly.global.Util;
 import com.seatly.seatly.global.exception.NotFoundException;
 import com.seatly.seatly.store.SeatStoreService;
 import com.seatly.seatly.store.SessionStoreService;
@@ -37,18 +38,23 @@ public class SessionService {
     return storeService.findSessionInfosByStudyCafeId(studyCafeId);
   }
 
-  public List<Session> findExpiredInUseSessions(LocalDateTime now) {
-    return storeService.getSessions().stream()
-        .filter(session -> session.getStatus() == SessionStatus.IN_USE
-            && session.getStartTime().isBefore(now))
-        .toList();
+  @Transactional
+  public SessionInfo startSession(Long userId, Long id) {
+    if (!id.equals(redisService.getUserSessionId(userId))) {
+      throw new IllegalArgumentException("사용자 정보와 세션 아이디가 일치하지 않습니다.");
+    }
+    Session session = storeService.findByIdOrThrow(id);
+    session.setStatus(SessionStatus.IN_USE);
+    session.setStartTime(Util.now());
+    session = storeService.save(session);
+    return new SessionInfo(session);
   }
 
-  public SessionInfo startSession(Long id, SessionInfo body) {
-    // session 상태 변경
-    // TODO: 관리자 계정 확인 -> 관리자는 관리자의 studycafe seat의 세션만 종료할 수 있음
-    // TODO: user 계정 확인 -> 본인 세션만 종료 가능해야함
-    return null;
+  public List<Session> findExpiredInUseSessions(OffsetDateTime now) {
+    return storeService.getSessions().stream()
+        .filter(session -> session.getStatus().equals(SessionStatus.IN_USE)
+            && session.getStartTime().isBefore(now))
+        .toList();
   }
 
   public void endSession(Long id) {
@@ -58,7 +64,7 @@ public class SessionService {
   }
 
   @Transactional
-  public Session assignSeat(Long userId, Long seatId) {
+  public SessionInfo assignSeat(Long userId, Long seatId) {
     if (!redisService.tryLockSeat(seatId)) {
       throw new IllegalStateException("이미 사용 중인 좌석입니다.");
     }
@@ -70,14 +76,14 @@ public class SessionService {
       Session session = createAssignedSession(user, seat);
       session = storeService.save(session);
       redisService.setSession(session.getId(), userId, seatId);
-      return session;
+      return new SessionInfo(session);
     } finally {
       redisService.unlockSeat(seatId);
     }
   }
 
   @Transactional
-  public Session autoAssignSeat(Long userId, Long studyCafeId) {
+  public SessionInfo autoAssignSeat(Long userId, Long studyCafeId) {
     User user = userStoreService.findByIdOrThrow(userId);
 
     // DB에서 AVAILABLE 좌석 목록 조회 (id로 정렬)
@@ -95,7 +101,7 @@ public class SessionService {
         Session session = createAssignedSession(user, seat);
         session = storeService.save(session);
         redisService.setSession(session.getId(), userId, seatId);
-        return session;
+        return new SessionInfo(session);
       } catch (Exception e) {
         redisService.unlockSeat(seatId);
         throw e;
