@@ -32,13 +32,13 @@ public class User {
   @Column(nullable = false)
   private String password;
 
-  @Column(length = 50)
+  @Column(length = 255)
   private String email;
 
   @Column(length = 50)
   private String phone;
 
-  @Column(length = 100)
+  @Column
   private String imageUrl;
 
   @Enumerated(EnumType.STRING)
