@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.nio.charset.StandardCharsets;
@@ -22,7 +23,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seatly.seatly.domain.User;
 import com.seatly.seatly.domain.enums.UserRole;
 import com.seatly.seatly.dto.user.UserInfoDetail;
+import com.seatly.seatly.dto.user.UserPasswordPut;
 import com.seatly.seatly.dto.user.UserPatch;
 import com.seatly.seatly.dto.user.UserPost;
 import com.seatly.seatly.global.security.JwtTokenProvider;
@@ -72,7 +73,6 @@ class UserControllerTest {
   @AfterAll
   void clear() throws Exception {
     testDeleteUser();
-    SecurityContextHolder.clearContext();
   }
 
   void testSignUpUser() throws Exception {
@@ -152,6 +152,33 @@ class UserControllerTest {
         .andExpect(status().isOk());
 
     testGetUserInfoDetail();
+  }
+
+  @Test
+  @Order(3)
+  void testUpdateUserPassword() throws Exception {
+    UserPasswordPut userPasswordPut = new UserPasswordPut();
+    String oldPassword = password;
+    password = randomPassword();
+    userPasswordPut.setNewPassword(password);
+
+    // 현재 비밀번호를 틀리게 입력한 경우
+    userPasswordPut.setCurrentPassword("testtemppassword");
+    mockMvc.perform(
+        put("/api/user/password")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(mapper.writeValueAsString(userPasswordPut)))
+        .andExpect(status().isBadRequest());
+
+    // 현재 비밀번호를 바르게 입력한 경우
+    userPasswordPut.setCurrentPassword(oldPassword);
+    mockMvc.perform(
+        put("/api/user/password")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(mapper.writeValueAsString(userPasswordPut)))
+        .andExpect(status().isOk());
   }
 
   private String randomEmail() {

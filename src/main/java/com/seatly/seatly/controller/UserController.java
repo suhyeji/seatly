@@ -45,7 +45,7 @@ public class UserController {
     userService.updateUserInfo(user.getId(), userPatch);
   }
 
-  @PutMapping
+  @PutMapping("/password")
   public void updateUserPassword(@AuthenticationPrincipal CustomUserDetails user,
       @RequestBody UserPasswordPut passwordPut) {
     userService.updatePassword(user.getId(), passwordPut);
