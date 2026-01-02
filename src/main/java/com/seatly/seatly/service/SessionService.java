@@ -1,16 +1,33 @@
 package com.seatly.seatly.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.seatly.seatly.domain.Seat;
+import com.seatly.seatly.domain.Session;
+import com.seatly.seatly.domain.User;
+import com.seatly.seatly.domain.enums.SessionStatus;
 import com.seatly.seatly.dto.session.SessionInfo;
+import com.seatly.seatly.store.SeatStoreService;
+import com.seatly.seatly.store.SessionStoreService;
+import com.seatly.seatly.store.UserStoreService;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class SessionService {
 
+  private final RedisService redisService;
+  private final SessionStoreService storeService;
+  private final UserStoreService userStoreService;
+  private final SeatStoreService seatStoreService;
+
   public List<SessionInfo> getSessions() {
-    return null;
+    return new ArrayList<>();
   }
 
   public SessionInfo startSession(Long id, SessionInfo body) {
@@ -26,13 +43,37 @@ public class SessionService {
     // session에서 삭제
   }
 
-  public void assignSession(Long seatId) {
-    // TODO: user 계정 확인
-    // session에 추가
+  @Transactional
+  public Long assignSeat(Long userId, Long seatId) {
+    Boolean locked = redisService.tryLockSeat(seatId);
+
+    if (Boolean.FALSE.equals(locked)) {
+      throw new IllegalStateException("이미 사용 중인 좌석입니다.");
+    }
+
+    try {
+      Session session = new Session();
+      User user = userStoreService.findByIdOrThrow(seatId);
+      Seat seat = seatStoreService.findByIdOrThrow(seatId);
+      session.setUser(user);
+      session.setSeat(seat);
+      session.setStatus(SessionStatus.ASSIGNED);
+
+      session = storeService.save(session);
+      Long sessionId = session.getId();
+
+      redisService.setSeatSession(seatId, sessionId);
+      redisService.setUserSession(userId, sessionId);
+
+      return sessionId;
+    } finally {
+      redisService.unlockSeat(seatId);
+    }
   }
 
-  public void autossignSession(Long seatId) {
-    // TODO: user 계정 확인
-    // session에 추가
+  public void autoAssignSession(Long userId, Long studyCafeId) {
+    // studyCafeId로 좌석 목록 조회 (statud AVAILABLE)
+    // 좌석 목록에서 session이 없는 좌석 중 숫자가 가장 작은 것 선택
+    // session 생성
   }
 }

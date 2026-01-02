@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.seatly.seatly.domain.User;
 import com.seatly.seatly.domain.enums.UserCafeLinkType;
@@ -21,7 +22,6 @@ import com.seatly.seatly.store.UserStoreService;
 import com.seatly.seatly.store.UserStudyCafeLinkStoreService;
 import com.seatly.seatly.store.UserTimePassStoreService;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -51,7 +51,7 @@ public class UserService {
   public UserInfoDetail getUserInfoDetail(Long id) {
     UserInfoDetail result = new UserInfoDetail();
 
-    User user = userStoreService.getUserInfoOrThrow(id);
+    User user = userStoreService.findByIdOrThrow(id);
     result.setEmail(user.getEmail());
     result.setName(user.getName());
     result.setPhone(user.getPhone());
@@ -73,7 +73,7 @@ public class UserService {
   // 관리자만 가능
   public UserInfo getUserInfo(Long id) {
     UserInfo result = new UserInfo();
-    User user = userStoreService.getUserInfoOrThrow(id);
+    User user = userStoreService.findByIdOrThrow(id);
     result.setEmail(user.getEmail());
     result.setName(user.getName());
     result.setPhone(user.getPhone());
@@ -88,14 +88,14 @@ public class UserService {
 
   public UserInfoDetail updateUserInfo(Long id, UserPatch userPatch) {
     UserInfoDetail result = new UserInfoDetail();
-    User user = userStoreService.getUserInfoOrThrow(id);
+    User user = userStoreService.findByIdOrThrow(id);
     userStoreService.save(userPatch.patch(user));
     return result;
   }
 
   @Transactional
   public void updatePassword(Long id, UserPasswordPut passwordPut) {
-    User user = userStoreService.getUserInfoOrThrow(id);
+    User user = userStoreService.findByIdOrThrow(id);
     if (!passwordEncoder.matches(passwordPut.getCurrentPassword(), user.getPassword())) {
       throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
     }

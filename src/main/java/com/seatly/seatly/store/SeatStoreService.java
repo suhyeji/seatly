@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.seatly.seatly.domain.Seat;
+import com.seatly.seatly.global.exception.NotFoundException;
 import com.seatly.seatly.repository.SeatRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,11 @@ import lombok.RequiredArgsConstructor;
 public class SeatStoreService {
 
   private final SeatRepository store;
+
+  public Seat findByIdOrThrow(Long id) {
+    return store.findById(id).orElseThrow(
+        () -> new NotFoundException("Seat not found: " + id));
+  }
 
   public List<Seat> getSeatsByStudyCafeId(Long studyCafeId) {
     return store.findByStudyCafeId(studyCafeId);

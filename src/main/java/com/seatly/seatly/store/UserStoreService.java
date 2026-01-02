@@ -4,11 +4,11 @@ import java.util.Optional;
 
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.seatly.seatly.domain.User;
 import com.seatly.seatly.repository.UserRepository;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -17,11 +17,11 @@ public class UserStoreService {
 
   private final UserRepository store;
 
-  public User getNullableUserInfo(Long id) {
+  public User findByIdOrNull(Long id) {
     return store.findById(id).orElse(null);
   }
 
-  public User getUserInfoOrThrow(Long id) {
+  public User findByIdOrThrow(Long id) {
     return store.findById(id).orElseThrow(
         () -> new UsernameNotFoundException("User not found: " + id));
   }

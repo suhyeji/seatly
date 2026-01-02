@@ -26,7 +26,7 @@ public class SeatService {
   private final StudyCafeStoreService studyCafeStoreService;
 
   public List<SeatInfo> getSeats(Long userId, Long studyCafeId) {
-    User user = userStoreService.getNullableUserInfo(userId);
+    User user = userStoreService.findByIdOrNull(userId);
 
     if (user.getRole() != UserRole.ADMIN) {
       // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
@@ -39,7 +39,7 @@ public class SeatService {
   }
 
   public void addSeat(Long userId, Long studyCafeId, List<SeatPost> body) {
-    User user = userStoreService.getNullableUserInfo(userId);
+    User user = userStoreService.findByIdOrNull(userId);
 
     if (user.getRole() != UserRole.ADMIN) {
       // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
@@ -56,7 +56,7 @@ public class SeatService {
   }
 
   public void updateSeats(Long userId, List<SeatPatch> body) {
-    User user = userStoreService.getNullableUserInfo(userId);
+    User user = userStoreService.findByIdOrNull(userId);
 
     if (user.getRole() != UserRole.ADMIN) {
       // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
@@ -72,7 +72,7 @@ public class SeatService {
   }
 
   public void deleteSeat(Long userId, Long id) {
-    User user = userStoreService.getNullableUserInfo(userId);
+    User user = userStoreService.findByIdOrNull(userId);
 
     if (user.getRole() != UserRole.ADMIN) {
       // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
