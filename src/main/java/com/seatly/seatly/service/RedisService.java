@@ -30,9 +30,11 @@ public class RedisService {
   }
 
   // 좌석 점유는 2분
-  public void setSeatSession(Long seatId, Long sessionId) {
-    redisTemplate.opsForValue().set(SEAT_SESSION_KEY + seatId, sessionId.toString(),
-        Duration.ofMinutes(2));
+  public void setSession(Long sessionId, Long userId, Long seatId) {
+    Duration duration = Duration.ofMinutes(2);
+    String sessionIdStr = sessionId.toString();
+    redisTemplate.opsForValue().set(SEAT_SESSION_KEY + seatId, sessionIdStr, duration);
+    redisTemplate.opsForValue().set(USER_SESSION_KEY + userId, sessionIdStr, duration);
   }
 
   public void updateSeatSessionTime(Long seatId, Long seconds) {
@@ -43,12 +45,6 @@ public class RedisService {
   public Long getSeatSessionId(Long seatId) {
     return Long.parseLong(redisTemplate.opsForValue()
         .get(SEAT_SESSION_KEY + seatId));
-  }
-
-  // 좌석 점유는 2분
-  public void setUserSession(Long userId, Long sessionId) {
-    redisTemplate.opsForValue().set(USER_SESSION_KEY + userId, sessionId.toString(),
-        Duration.ofMinutes(2));
   }
 
   public void updateUserSessionTime(Long userId, Long seconds) {

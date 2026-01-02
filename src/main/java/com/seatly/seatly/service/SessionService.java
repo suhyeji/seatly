@@ -45,7 +45,7 @@ public class SessionService {
   }
 
   @Transactional
-  public Long assignSeat(Long userId, Long seatId) {
+  public Session assignSeat(Long userId, Long seatId) {
     if (!redisService.tryLockSeat(seatId)) {
       throw new IllegalStateException("이미 사용 중인 좌석입니다.");
     }
@@ -53,15 +53,11 @@ public class SessionService {
     try {
       User user = userStoreService.findByIdOrThrow(seatId);
       Seat seat = seatStoreService.findByIdOrThrow(seatId);
+
       Session session = createAssignedSession(user, seat);
-
       session = storeService.save(session);
-      Long sessionId = session.getId();
-
-      redisService.setSeatSession(seatId, sessionId);
-      redisService.setUserSession(userId, sessionId);
-
-      return sessionId;
+      redisService.setSession(session.getId(), userId, seatId);
+      return session;
     } finally {
       redisService.unlockSeat(seatId);
     }
@@ -85,11 +81,7 @@ public class SessionService {
       try {
         Session session = createAssignedSession(user, seat);
         session = storeService.save(session);
-
-        Long sessionId = session.getId();
-        redisService.setSeatSession(seatId, sessionId);
-        redisService.setUserSession(userId, sessionId);
-
+        redisService.setSession(session.getId(), userId, seatId);
         return session;
       } catch (Exception e) {
         redisService.unlockSeat(seatId);
