@@ -40,9 +40,9 @@ public class UserController {
   }
 
   @PatchMapping
-  public UserInfoDetail updateUserInfo(@AuthenticationPrincipal CustomUserDetails user,
+  public void updateUserInfo(@AuthenticationPrincipal CustomUserDetails user,
       @RequestBody UserPatch userPatch) {
-    return userService.updateUserInfo(user.getId(), userPatch);
+    userService.updateUserInfo(user.getId(), userPatch);
   }
 
   @PutMapping

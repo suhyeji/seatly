@@ -85,11 +85,9 @@ public class UserService {
     return userTimePassStoreService.getTimePasseInfosByStudyCafeId(studyCafeId);
   }
 
-  public UserInfoDetail updateUserInfo(Long id, UserPatch userPatch) {
-    UserInfoDetail result = new UserInfoDetail();
+  public void updateUserInfo(Long id, UserPatch userPatch) {
     User user = userStoreService.findByIdOrThrow(id);
     userStoreService.save(userPatch.patch(user));
-    return result;
   }
 
   @Transactional
