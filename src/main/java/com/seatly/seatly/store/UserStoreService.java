@@ -30,13 +30,13 @@ public class UserStoreService {
     return store.findById(id);
   }
 
+  public User findByEmailOrNull(String email) {
+    return store.findByEmail(email).orElse(null);
+  }
+
   @Transactional
   public User save(User model) {
     return store.save(model);
-  }
-
-  public User getNullableUserInfoByEmail(String email) {
-    return store.findByEmail(email).orElse(null);
   }
 
   public void deleteById(Long id) {

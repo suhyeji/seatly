@@ -1,6 +1,7 @@
 package com.seatly.seatly.store;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -16,21 +17,25 @@ public class SeatStoreService {
 
   private final SeatRepository store;
 
+  public Seat findByIdOrNull(Long id) {
+    return store.findById(id).orElse(null);
+  }
+
   public Seat findByIdOrThrow(Long id) {
     return store.findById(id).orElseThrow(
         () -> new NotFoundException("Seat not found: " + id));
   }
 
-  public List<Seat> getSeatsByStudyCafeId(Long studyCafeId) {
+  public Optional<Seat> findById(Long id) {
+    return store.findById(id);
+  }
+
+  public List<Seat> findAllByStudyCafeId(Long studyCafeId) {
     return store.findByStudyCafeId(studyCafeId);
   }
 
-  public long getSeatsCountByStudyCafeId(Long studyCafeId) {
+  public long getCountByStudyCafeId(Long studyCafeId) {
     return store.countByStudyCafeId(studyCafeId);
-  }
-
-  public Seat getNullableSeatInfo(Long id) {
-    return store.findById(id).orElse(null);
   }
 
   public void save(Seat seat) {

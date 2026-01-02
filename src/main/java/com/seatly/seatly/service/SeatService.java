@@ -33,7 +33,7 @@ public class SeatService {
       throw new IllegalArgumentException("해당 유저는 관리자 계정이 아닙니다.");
     }
 
-    return storeService.getSeatsByStudyCafeId(studyCafeId).stream()
+    return storeService.findAllByStudyCafeId(studyCafeId).stream()
         .map(seat -> new SeatInfo(seat, studyCafeId))
         .toList();
   }
@@ -46,7 +46,7 @@ public class SeatService {
       throw new IllegalArgumentException("해당 유저는 관리자 계정이 아닙니다.");
     }
 
-    StudyCafe studyCafe = studyCafeStoreService.getNullableStudyCafeInfo(studyCafeId);
+    StudyCafe studyCafe = studyCafeStoreService.findByIdOrNull(studyCafeId);
 
     body.stream().forEach(seatPost -> {
       Seat seat = seatPost.insert();
@@ -64,7 +64,7 @@ public class SeatService {
     }
 
     body.stream().forEach(seatPatch -> {
-      Seat seat = storeService.getNullableSeatInfo(seatPatch.getId());
+      Seat seat = storeService.findByIdOrNull(seatPatch.getId());
       if (seat == null)
         return;
       storeService.save(seatPatch.patch(seat));

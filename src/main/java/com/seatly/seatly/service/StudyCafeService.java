@@ -35,13 +35,13 @@ public class StudyCafeService {
   private final UserTimePassStoreService userTimePassStoreService;
 
   public List<StudyCafeSummary> getStudySummaries() {
-    return storeService.getStudyCafes().stream()
+    return storeService.findAll().stream()
         .map(StudyCafeSummary::new)
         .toList();
   }
 
   public StudyCafeDetail getStudyCafeDetail(Long id) {
-    return new StudyCafeDetail(storeService.getNullableStudyCafeInfo(id));
+    return new StudyCafeDetail(storeService.findByIdOrNull(id));
   }
 
   public List<StudyCafeSummary> getAdminStudyCafeSummaries(Long userId) {
@@ -64,7 +64,7 @@ public class StudyCafeService {
   public StudyCafeUsage getStudyCafeUsage(Long studyCafeId) {
     // 전체 seat 갯수 / 전체 세션 갯수
     return new StudyCafeUsage(
-        seatStoreService.getSeatsCountByStudyCafeId(studyCafeId),
+        seatStoreService.getCountByStudyCafeId(studyCafeId),
         sessionStoreService.getSessionCountByStudyCafeId(studyCafeId));
   }
 
@@ -87,7 +87,7 @@ public class StudyCafeService {
       throw new IllegalArgumentException("해당 유저는 관리자 계정이 아닙니다.");
     }
 
-    StudyCafe entity = storeService.getNullableStudyCafeInfo(studyCafeId);
+    StudyCafe entity = storeService.findByIdOrNull(studyCafeId);
     storeService.save(body.update(entity));
   }
 
@@ -105,7 +105,7 @@ public class StudyCafeService {
   // 즐겨찾는 스터디카페 추가
   public void addFavoriteStudyCafe(Long userId, Long id) {
     User user = userStoreService.findByIdOrNull(userId);
-    StudyCafe studyCafe = storeService.getNullableStudyCafeInfo(id);
+    StudyCafe studyCafe = storeService.findByIdOrNull(id);
 
     UserStudyCafeLink link = new UserStudyCafeLink();
     link.setStudyCafe(studyCafe);

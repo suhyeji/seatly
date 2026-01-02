@@ -15,11 +15,11 @@ public class StudyCafeStoreService {
 
   private final StudyCafeRepository store;
 
-  public List<StudyCafe> getStudyCafes() {
+  public List<StudyCafe> findAll() {
     return store.findAll();
   }
 
-  public StudyCafe getNullableStudyCafeInfo(Long id) {
+  public StudyCafe findByIdOrNull(Long id) {
     return store.findById(id).orElse(null);
   }
 
