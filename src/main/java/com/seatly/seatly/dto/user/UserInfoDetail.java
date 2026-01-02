@@ -2,7 +2,6 @@ package com.seatly.seatly.dto.user;
 
 import java.util.List;
 
-import com.seatly.seatly.domain.enums.UserLoginType;
 import com.seatly.seatly.domain.enums.UserRole;
 import com.seatly.seatly.dto.TimePass;
 import com.seatly.seatly.dto.session.SessionInfo;
