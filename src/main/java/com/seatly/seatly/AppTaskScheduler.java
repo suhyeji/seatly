@@ -6,7 +6,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.seatly.seatly.domain.Session;
-import com.seatly.seatly.global.Util;
 import com.seatly.seatly.service.SessionService;
 
 import lombok.RequiredArgsConstructor;
@@ -19,8 +18,7 @@ public class AppTaskScheduler {
 
   @Scheduled(fixedDelay = 10000)
   public void finishExpiredSessions() {
-    List<Session> expired = sessionService.findExpiredInUseSessions(Util.now());
-
+    List<Session> expired = sessionService.findExpiredInUseSessions();
     for (Session session : expired) {
       sessionService.finishSession(session);
     }

@@ -26,6 +26,10 @@ public class CustomUserDetails implements UserDetails {
     this.role = user.getRole();
   }
 
+  public boolean isAdmin() {
+    return UserRole.ADMIN.equals(role);
+  }
+
   @Override
   public String getUsername() {
     return username;

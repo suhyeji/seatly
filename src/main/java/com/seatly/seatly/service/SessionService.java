@@ -40,7 +40,7 @@ public class SessionService {
 
   @Transactional
   public SessionInfo startSession(Long userId, Long id) {
-    if (!id.equals(redisService.getUserSessionId(userId))) {
+    if (!id.equals(redisService.getSessionIdByUserId(userId))) {
       throw new IllegalArgumentException("사용자 정보와 세션 아이디가 일치하지 않습니다.");
     }
     Session session = storeService.findByIdOrThrow(id);
@@ -50,17 +50,22 @@ public class SessionService {
     return new SessionInfo(session);
   }
 
-  public List<Session> findExpiredInUseSessions(OffsetDateTime now) {
+  public void endSession(Long userId, boolean isAdmin, Long id) {
+    if (!isAdmin && !id.equals(redisService.getSessionIdByUserId(userId))) {
+      throw new IllegalArgumentException("사용자 정보와 세션 아이디가 일치하지 않습니다.");
+    }
+    storeService.findById(id).ifPresent(session -> {
+      redisService.deleteSession(session.getId());
+      storeService.delete(session);
+    });
+  }
+
+  public List<Session> findExpiredInUseSessions() {
+    OffsetDateTime now = Util.now();
     return storeService.getSessions().stream()
         .filter(session -> session.getStatus().equals(SessionStatus.IN_USE)
             && session.getStartTime().isBefore(now))
         .toList();
-  }
-
-  public void endSession(Long id) {
-    // TODO: 관리자 계정 확인 -> 관리자는 관리자의 studycafe seat의 세션만 종료할 수 있음
-    // TODO: user 계정 확인 -> 본인 세션만 종료 가능해야함
-    // session에서 삭제
   }
 
   @Transactional
@@ -128,9 +133,7 @@ public class SessionService {
     Long userId = session.getUser().getId();
 
     storeService.delete(session);
-
-    redisService.getSeatSessionId(seatId);
-    redisService.deleteUserSession(userId);
+    redisService.deleteSession(session.getId());
 
     seatWebSocketPublisher.publishToStudyCafe(
         studyCafeId,

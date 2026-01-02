@@ -40,8 +40,9 @@ public class SessionController {
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void endSession(@PathVariable Long id) {
-    service.endSession(id);
+  public void endSession(@AuthenticationPrincipal CustomUserDetails user,
+      @PathVariable Long id) {
+    service.endSession(user.getId(), user.isAdmin(), id);
   }
 
   @PostMapping("/assign")

@@ -61,4 +61,8 @@ public class SessionStoreService {
     store.delete(session);
   }
 
+  public void deleteById(Long id) {
+    store.deleteById(id);
+  }
+
 }
