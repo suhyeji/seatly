@@ -23,9 +23,7 @@ public interface SessionRepository
       Long seatId,
       SessionStatus status);
 
-  List<Session> findByUserId(Long userId);
-
-  List<Session> findByStudyCafeId(Long studyCafeId);
+  List<Session> findAllByStudyCafeId(Long studyCafeId);
 
   long countByStudyCafeId(Long studyCafeId);
 
@@ -44,4 +42,21 @@ public interface SessionRepository
       """)
   List<SessionInfo> findSessionInfosByUserId(
       @Param("userId") Long userId);
+
+  @Query("""
+          select new com.seatly.seatly.dto.session.SessionInfo(
+              s.id,
+              seat.id,
+              seat.studyCafe.id,
+              s.user.id,
+              s.status,
+              s.startTime
+          )
+          from Session s
+          join s.seat seat
+          where seat.studyCafe.id = :studyCafeId
+      """)
+  List<SessionInfo> findSessionInfosByStudyCafeId(
+      @Param("studyCafeId") Long studyCafeId);
+
 }

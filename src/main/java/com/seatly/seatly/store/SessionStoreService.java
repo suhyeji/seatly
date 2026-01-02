@@ -17,12 +17,12 @@ public class SessionStoreService {
 
   private final SessionRepository store;
 
-  public List<SessionInfo> findSessionInfosByUserId(Long userId) {
-    return store.findSessionInfosByUserId(userId);
+  public List<SessionInfo> findSessionInfosByStudyCafeId(Long studyCafeId) {
+    return store.findSessionInfosByStudyCafeId(studyCafeId);
   }
 
-  public List<Session> getEntitiesByStudyCafeId(Long studyCafeId) {
-    return store.findByStudyCafeId(studyCafeId);
+  public List<SessionInfo> findSessionInfosByUserId(Long userId) {
+    return store.findSessionInfosByUserId(userId);
   }
 
   public long getSessionCountByStudyCafeId(Long studyCafeId) {

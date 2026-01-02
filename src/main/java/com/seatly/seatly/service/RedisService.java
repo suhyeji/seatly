@@ -19,15 +19,17 @@ public class RedisService {
 
   private static final String LOCK = "LOCK";
 
-  public Boolean tryLockSeat(Long seatId) {
-    return redisTemplate.opsForValue()
+  public boolean tryLockSeat(Long seatId) {
+    Boolean result = redisTemplate.opsForValue()
         .setIfAbsent(SEAT_LOCK_KEY + seatId, LOCK, Duration.ofSeconds(5));
+    return Boolean.TRUE.equals(result);
   }
 
   public void unlockSeat(Long seatId) {
     redisTemplate.delete(SEAT_LOCK_KEY + seatId);
   }
 
+  // 좌석 점유는 2분
   public void setSeatSession(Long seatId, Long sessionId) {
     redisTemplate.opsForValue().set(SEAT_SESSION_KEY + seatId, sessionId.toString(),
         Duration.ofMinutes(2));
@@ -38,11 +40,12 @@ public class RedisService {
         Duration.ofSeconds(seconds));
   }
 
-  public Long getSeatSession(Long seatId) {
+  public Long getSeatSessionId(Long seatId) {
     return Long.parseLong(redisTemplate.opsForValue()
         .get(SEAT_SESSION_KEY + seatId));
   }
 
+  // 좌석 점유는 2분
   public void setUserSession(Long userId, Long sessionId) {
     redisTemplate.opsForValue().set(USER_SESSION_KEY + userId, sessionId.toString(),
         Duration.ofMinutes(2));
@@ -53,7 +56,7 @@ public class RedisService {
         Duration.ofSeconds(seconds));
   }
 
-  public Long getUserSession(Long userId) {
+  public Long getUserSessionId(Long userId) {
     return Long.parseLong(redisTemplate.opsForValue()
         .get(USER_SESSION_KEY + userId));
   }

@@ -10,9 +10,9 @@ import java.util.Optional;
 
 public interface SeatRepository extends JpaRepository<Seat, Long> {
 
-  List<Seat> findByStudyCafeId(Long studyCafeId);
+  List<Seat> findAllByStudyCafeId(Long studyCafeId);
 
-  List<Seat> findByStudyCafeIdAndStatus(
+  List<Seat> findAllByStudyCafeIdAndStatus(
       Long studyCafeId,
       SeatStatus status);
 

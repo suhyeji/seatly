@@ -1,6 +1,6 @@
 package com.seatly.seatly.service;
 
-import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -11,6 +11,7 @@ import com.seatly.seatly.domain.Session;
 import com.seatly.seatly.domain.User;
 import com.seatly.seatly.domain.enums.SessionStatus;
 import com.seatly.seatly.dto.session.SessionInfo;
+import com.seatly.seatly.global.exception.NotFoundException;
 import com.seatly.seatly.store.SeatStoreService;
 import com.seatly.seatly.store.SessionStoreService;
 import com.seatly.seatly.store.UserStoreService;
@@ -26,8 +27,8 @@ public class SessionService {
   private final UserStoreService userStoreService;
   private final SeatStoreService seatStoreService;
 
-  public List<SessionInfo> getSessions() {
-    return new ArrayList<>();
+  public List<SessionInfo> getSessions(Long studyCafeId) {
+    return storeService.findSessionInfosByStudyCafeId(studyCafeId);
   }
 
   public SessionInfo startSession(Long id, SessionInfo body) {
@@ -45,19 +46,14 @@ public class SessionService {
 
   @Transactional
   public Long assignSeat(Long userId, Long seatId) {
-    Boolean locked = redisService.tryLockSeat(seatId);
-
-    if (Boolean.FALSE.equals(locked)) {
+    if (!redisService.tryLockSeat(seatId)) {
       throw new IllegalStateException("이미 사용 중인 좌석입니다.");
     }
 
     try {
-      Session session = new Session();
       User user = userStoreService.findByIdOrThrow(seatId);
       Seat seat = seatStoreService.findByIdOrThrow(seatId);
-      session.setUser(user);
-      session.setSeat(seat);
-      session.setStatus(SessionStatus.ASSIGNED);
+      Session session = createAssignedSession(user, seat);
 
       session = storeService.save(session);
       Long sessionId = session.getId();
@@ -71,9 +67,46 @@ public class SessionService {
     }
   }
 
-  public void autoAssignSession(Long userId, Long studyCafeId) {
-    // studyCafeId로 좌석 목록 조회 (statud AVAILABLE)
-    // 좌석 목록에서 session이 없는 좌석 중 숫자가 가장 작은 것 선택
-    // session 생성
+  @Transactional
+  public Session autoAssignSeat(Long userId, Long studyCafeId) {
+    User user = userStoreService.findByIdOrThrow(userId);
+
+    // DB에서 AVAILABLE 좌석 목록 조회 (id로 정렬)
+    List<Seat> seats = seatStoreService.findAllAvailableByStudyCafeId(studyCafeId);
+    seats.sort(Comparator.comparing(Seat::getId));
+
+    // 앞에서부터 Redis 선점 시도
+    for (Seat seat : seats) {
+      Long seatId = seat.getId();
+      if (!redisService.tryLockSeat(seatId)) {
+        continue; // 이미 다른 요청이 선점
+      }
+
+      try {
+        Session session = createAssignedSession(user, seat);
+        session = storeService.save(session);
+
+        Long sessionId = session.getId();
+        redisService.setSeatSession(seatId, sessionId);
+        redisService.setUserSession(userId, sessionId);
+
+        return session;
+      } catch (Exception e) {
+        redisService.unlockSeat(seatId);
+        throw e;
+      }
+    }
+
+    // 배정 가능한 좌석이 하나도 없는 경우
+    throw new NotFoundException("Available seat not found. studyCafeId=" + studyCafeId);
   }
+
+  private Session createAssignedSession(User user, Seat seat) {
+    Session session = new Session();
+    session.setUser(user);
+    session.setSeat(seat);
+    session.setStatus(SessionStatus.ASSIGNED);
+    return session;
+  }
+
 }

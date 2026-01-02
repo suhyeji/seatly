@@ -26,34 +26,34 @@ import org.springframework.web.bind.annotation.PostMapping;
 @RequiredArgsConstructor
 public class SessionController {
 
-  private final SessionService sessionService;
+  private final SessionService service;
 
   @GetMapping
-  public List<SessionInfo> getSessions() {
-    return sessionService.getSessions();
+  public List<SessionInfo> getSessions(@RequestParam Long studyCafeId) {
+    return service.getSessions(studyCafeId);
   }
 
   @PatchMapping("/{id}/start")
   public SessionInfo startSession(@PathVariable Long id, @RequestBody SessionInfo body) {
-    return sessionService.startSession(id, body);
+    return service.startSession(id, body);
   }
 
   @DeleteMapping("/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void endSession(@PathVariable Long id) {
-    sessionService.endSession(id);
+    service.endSession(id);
   }
 
   @PostMapping("/assign")
   public void assignSession(@AuthenticationPrincipal CustomUserDetails user,
       @RequestParam Long seatId) {
-    sessionService.assignSeat(user.getId(), seatId);
+    service.assignSeat(user.getId(), seatId);
   }
 
   @PostMapping("/auto-assign")
   public void autossignSession(@AuthenticationPrincipal CustomUserDetails user,
       @RequestParam Long studyCafeId) {
-    sessionService.autoAssignSession(user.getId(), studyCafeId);
+    service.autoAssignSeat(user.getId(), studyCafeId);
   }
 
 }

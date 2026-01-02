@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 import com.seatly.seatly.domain.Seat;
+import com.seatly.seatly.domain.enums.SeatStatus;
 import com.seatly.seatly.global.exception.NotFoundException;
 import com.seatly.seatly.repository.SeatRepository;
 
@@ -31,7 +32,13 @@ public class SeatStoreService {
   }
 
   public List<Seat> findAllByStudyCafeId(Long studyCafeId) {
-    return store.findByStudyCafeId(studyCafeId);
+    return store.findAllByStudyCafeId(studyCafeId);
+  }
+
+  public List<Seat> findAllAvailableByStudyCafeId(Long studyCafeId) {
+    return store.findAllByStudyCafeIdAndStatus(
+        studyCafeId,
+        SeatStatus.AVAILABLE);
   }
 
   public long getCountByStudyCafeId(Long studyCafeId) {

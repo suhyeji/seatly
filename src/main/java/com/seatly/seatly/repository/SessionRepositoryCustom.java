@@ -6,7 +6,7 @@ import com.seatly.seatly.domain.Session;
 
 public interface SessionRepositoryCustom {
 
-  List<Session> findByStudyCafeId(Long studyCafeId);
+  List<Session> findAllByStudyCafeId(Long studyCafeId);
 
   long countByStudyCafeId(Long studyCafeId);
 

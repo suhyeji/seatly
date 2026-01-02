@@ -17,7 +17,7 @@ public class SessionRepositoryCustomImpl implements SessionRepositoryCustom {
   private final JPAQueryFactory queryFactory;
 
   @Override
-  public List<Session> findByStudyCafeId(Long studyCafeId) {
+  public List<Session> findAllByStudyCafeId(Long studyCafeId) {
     return queryFactory
         .selectFrom(session)
         .join(session.seat, seat).fetchJoin()
