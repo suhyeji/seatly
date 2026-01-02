@@ -289,8 +289,8 @@ class StudyCafeControllerTest {
     // when & then
     mockMvc.perform(get("/api/study-cafes/" + cafe.getId() + "/usage"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.totalSeatCount").value(3))
-        .andExpect(jsonPath("$.usedSeatCount").value(2));
+        .andExpect(jsonPath("$.totalCount").value(3))
+        .andExpect(jsonPath("$.useCount").value(2));
   }
 
   // ===========================
@@ -298,14 +298,19 @@ class StudyCafeControllerTest {
   // ===========================
   @Test
   void create_then_get_detail_value_match() throws Exception {
+    StudyCafe cafe = createCafeA();
     StudyCafeDetailPost post = new StudyCafeDetailPost();
-    post.setName("스터디카페A");
-    post.setAddress("서울시");
+    post.setName(cafe.getName());
+    post.setAddress(cafe.getAddress());
+    post.setImages(cafe.getImageUrls());
+    post.setPhoneNumber(cafe.getPhoneNumber());
+    post.setFacilities(cafe.getFacilities());
+    post.setOpeningHours(cafe.getOpeningHours());
+    post.setDescription(cafe.getDescription());
 
     // 생성
     mockMvc.perform(post("/api/study-cafes")
-        .principal(
-            new UsernamePasswordAuthenticationToken(adminUser, null))
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(post)))
         .andExpect(status().isCreated());
@@ -313,10 +318,20 @@ class StudyCafeControllerTest {
     StudyCafe saved = studyCafeStoreService.findAll().get(0);
 
     // 조회 + 검증
-    mockMvc.perform(get("/api/study-cafes/" + saved.getId()))
+    MvcResult result = mockMvc.perform(get("/api/study-cafes/" + saved.getId()))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.name").value("스터디카페A"))
-        .andExpect(jsonPath("$.address").value("서울시"));
+        .andReturn();
+    StudyCafeDetail response = objectMapper.readValue(
+        result.getResponse().getContentAsString(StandardCharsets.UTF_8),
+        StudyCafeDetail.class);
+
+    assertThat(response.getName()).isEqualTo(post.getName());
+    assertThat(response.getAddress()).isEqualTo(post.getAddress());
+    assertThat(response.getImageUrls()).isEqualTo(post.getImages());
+    assertThat(response.getPhoneNumber()).isEqualTo(post.getPhoneNumber());
+    assertThat(response.getFacilities()).isEqualTo(post.getFacilities());
+    assertThat(response.getOpeningHours()).isEqualTo(post.getOpeningHours());
+    assertThat(response.getDescription()).isEqualTo(post.getDescription());
   }
 
   // ===========================
@@ -332,8 +347,7 @@ class StudyCafeControllerTest {
     update.setName("변경");
 
     mockMvc.perform(patch("/api/study-cafes/" + cafe.getId())
-        .principal(
-            new UsernamePasswordAuthenticationToken(adminUser, null))
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + normalToken)
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(update)))
         .andExpect(status().isOk());
@@ -351,8 +365,7 @@ class StudyCafeControllerTest {
     StudyCafe cafe = studyCafeStoreService.save(new StudyCafe());
 
     mockMvc.perform(post("/api/study-cafes/" + cafe.getId() + "/favorite")
-        .principal(
-            new UsernamePasswordAuthenticationToken(normalUser, null)))
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + normalToken))
         .andExpect(status().isOk());
   }
 
@@ -364,8 +377,7 @@ class StudyCafeControllerTest {
     StudyCafe cafe = studyCafeStoreService.save(new StudyCafe());
 
     mockMvc.perform(delete("/api/study-cafes/" + cafe.getId() + "/users/2/time")
-        .principal(
-            new UsernamePasswordAuthenticationToken(adminUser, null)))
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + normalToken))
         .andExpect(status().isOk());
   }
 

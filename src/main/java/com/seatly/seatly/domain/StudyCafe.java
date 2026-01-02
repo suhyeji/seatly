@@ -3,6 +3,9 @@ package com.seatly.seatly.domain;
 import java.time.OffsetDateTime;
 import java.util.List;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.seatly.seatly.domain.enums.Facility;
 import com.seatly.seatly.global.Util;
@@ -34,6 +37,7 @@ public class StudyCafe {
   private String address;
 
   @Type(JsonType.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(columnDefinition = "jsonb")
   private List<String> imageUrls;
 
@@ -41,6 +45,7 @@ public class StudyCafe {
   private String phoneNumber;
 
   @Type(JsonType.class)
+  @JdbcTypeCode(SqlTypes.JSON)
   @Column(columnDefinition = "jsonb")
   private List<Facility> facilities;
 

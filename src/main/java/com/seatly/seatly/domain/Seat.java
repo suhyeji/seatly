@@ -3,6 +3,7 @@ package com.seatly.seatly.domain;
 import java.time.OffsetDateTime;
 
 import com.seatly.seatly.domain.enums.SeatStatus;
+import com.seatly.seatly.global.Util;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -46,5 +47,5 @@ public class Seat {
   private SeatStatus status;
 
   @Column(nullable = false)
-  private OffsetDateTime updatedAt;
+  private OffsetDateTime updatedAt = Util.now();
 }
