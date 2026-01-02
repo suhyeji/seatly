@@ -1,5 +1,6 @@
 package com.seatly.seatly.service;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 
@@ -9,12 +10,15 @@ import org.springframework.transaction.annotation.Transactional;
 import com.seatly.seatly.domain.Seat;
 import com.seatly.seatly.domain.Session;
 import com.seatly.seatly.domain.User;
+import com.seatly.seatly.domain.enums.SeatEventType;
 import com.seatly.seatly.domain.enums.SessionStatus;
+import com.seatly.seatly.dto.seat.SeatEvent;
 import com.seatly.seatly.dto.session.SessionInfo;
 import com.seatly.seatly.global.exception.NotFoundException;
 import com.seatly.seatly.store.SeatStoreService;
 import com.seatly.seatly.store.SessionStoreService;
 import com.seatly.seatly.store.UserStoreService;
+import com.seatly.seatly.websocket.SeatWebSocketPublisher;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,8 +31,17 @@ public class SessionService {
   private final UserStoreService userStoreService;
   private final SeatStoreService seatStoreService;
 
+  private final SeatWebSocketPublisher seatWebSocketPublisher;
+
   public List<SessionInfo> getSessions(Long studyCafeId) {
     return storeService.findSessionInfosByStudyCafeId(studyCafeId);
+  }
+
+  public List<Session> findExpiredInUseSessions(LocalDateTime now) {
+    return storeService.getSessions().stream()
+        .filter(session -> session.getStatus() == SessionStatus.IN_USE
+            && session.getStartTime().isBefore(now))
+        .toList();
   }
 
   public SessionInfo startSession(Long id, SessionInfo body) {
@@ -101,4 +114,24 @@ public class SessionService {
     return session;
   }
 
+  @Transactional
+  public void finishSession(Session session) {
+    // session 종료
+    Long studyCafeId = session.getSeat().getStudyCafe().getId();
+    Long seatId = session.getSeat().getId();
+    Long userId = session.getUser().getId();
+
+    storeService.delete(session);
+
+    redisService.getSeatSessionId(seatId);
+    redisService.deleteUserSession(userId);
+
+    seatWebSocketPublisher.publishToStudyCafe(
+        studyCafeId,
+        new SeatEvent(SeatEventType.USAGE_FINISHED, seatId));
+
+    seatWebSocketPublisher.publishToUser(
+        userId,
+        new SeatEvent(SeatEventType.USAGE_FINISHED, seatId));
+  }
 }

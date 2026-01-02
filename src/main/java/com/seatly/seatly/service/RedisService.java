@@ -57,4 +57,8 @@ public class RedisService {
         .get(USER_SESSION_KEY + userId));
   }
 
+  public void deleteUserSession(Long userId) {
+    redisTemplate.delete(USER_SESSION_KEY + userId);
+  }
+
 }

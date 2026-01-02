@@ -25,6 +25,8 @@ public interface SessionRepository
 
   List<Session> findAllByStudyCafeId(Long studyCafeId);
 
+  Optional<Session> findBySeatId(Long seatId);
+
   long countByStudyCafeId(Long studyCafeId);
 
   @Query("""

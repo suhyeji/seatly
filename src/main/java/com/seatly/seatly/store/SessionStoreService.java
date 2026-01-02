@@ -17,12 +17,20 @@ public class SessionStoreService {
 
   private final SessionRepository store;
 
+  public List<Session> getSessions() {
+    return store.findAll();
+  }
+
   public List<SessionInfo> findSessionInfosByStudyCafeId(Long studyCafeId) {
     return store.findSessionInfosByStudyCafeId(studyCafeId);
   }
 
   public List<SessionInfo> findSessionInfosByUserId(Long userId) {
     return store.findSessionInfosByUserId(userId);
+  }
+
+  public Session findBySeatId(Long seatId) {
+    return store.findBySeatId(seatId).orElse(null);
   }
 
   public long getSessionCountByStudyCafeId(Long studyCafeId) {
@@ -32,6 +40,10 @@ public class SessionStoreService {
   @Transactional
   public Session save(Session session) {
     return store.save(session);
+  }
+
+  public void delete(Session session) {
+    store.delete(session);
   }
 
 }

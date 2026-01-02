@@ -25,6 +25,10 @@ public class SeatService {
   private final UserStoreService userStoreService;
   private final StudyCafeStoreService studyCafeStoreService;
 
+  public Seat getSeatById(Long id) {
+    return storeService.findByIdOrNull(id);
+  }
+
   public List<SeatInfo> getSeats(Long userId, Long studyCafeId) {
     User user = userStoreService.findByIdOrNull(userId);
 
