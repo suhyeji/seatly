@@ -1,0 +1,6 @@
+ALTER TABLE seat
+  DROP COLUMN IF EXISTS seat_number;
+
+ALTER TABLE seat
+  ALTER COLUMN updated_at
+  SET DEFAULT (now() AT TIME ZONE 'UTC');
