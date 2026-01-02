@@ -54,6 +54,7 @@ public class UserService {
     result.setName(user.getName());
     result.setPhone(user.getPhone());
     result.setImageUrl(user.getImageUrl());
+    result.setRole(user.getRole());
 
     List<Long> favoriteCafeIds = userStudyCafeLinkStoreService.getStudyCafeIdsByUserIdAndLinkType(id,
         UserCafeLinkType.FAVORITE);
