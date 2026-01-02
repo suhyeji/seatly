@@ -10,8 +10,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
-import java.util.UUID;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -77,13 +75,13 @@ class UserControllerTest {
 
   void testSignUpUser() throws Exception {
     UserPost userPost = new UserPost();
-    email = randomEmail();
+    email = RandomUtil.randomEmail();
     userPost.setEmail(email);
-    password = randomPassword();
+    password = RandomUtil.randomPassword();
     userPost.setPassword(password);
-    username = randomName();
+    username = RandomUtil.randomName();
     userPost.setName(username);
-    phone = randomPhoneNumber();
+    phone = RandomUtil.randomPhoneNumber();
     userPost.setPhone(phone);
     userPost.setRole(UserRole.USER);
 
@@ -139,9 +137,9 @@ class UserControllerTest {
   @Order(2)
   void testUpdateUserInfo() throws Exception {
     UserPatch userPatch = new UserPatch();
-    username = randomName();
+    username = RandomUtil.randomName();
     userPatch.setName(username);
-    phone = randomPhoneNumber();
+    phone = RandomUtil.randomPhoneNumber();
     userPatch.setPhone(phone);
 
     mockMvc.perform(
@@ -159,7 +157,7 @@ class UserControllerTest {
   void testUpdateUserPassword() throws Exception {
     UserPasswordPut userPasswordPut = new UserPasswordPut();
     String oldPassword = password;
-    password = randomPassword();
+    password = RandomUtil.randomPassword();
     userPasswordPut.setNewPassword(password);
 
     // 현재 비밀번호를 틀리게 입력한 경우
@@ -179,43 +177,6 @@ class UserControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(mapper.writeValueAsString(userPasswordPut)))
         .andExpect(status().isOk());
-  }
-
-  private String randomEmail() {
-    return "test+" + UUID.randomUUID() + "@example.com";
-  }
-
-  private String randomPassword() {
-    String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
-    int length = 12;
-    SecureRandom random = new SecureRandom();
-    StringBuilder sb = new StringBuilder(length);
-    for (int i = 0; i < length; i++) {
-      sb.append(chars.charAt(random.nextInt(chars.length())));
-    }
-    return sb.toString();
-  }
-
-  private String randomName() {
-    String[] lastNames = {
-        "김", "이", "박", "최", "정", "강", "조", "윤", "장", "임"
-    };
-    String[] firstNames = {
-        "서준", "민준", "도윤", "예준", "시우",
-        "서연", "지우", "하윤", "지민", "채원"
-    };
-    SecureRandom random = new SecureRandom();
-    return lastNames[random.nextInt(lastNames.length)]
-        + firstNames[random.nextInt(firstNames.length)];
-  }
-
-  private String randomPhoneNumber() {
-    SecureRandom random = new SecureRandom();
-
-    int mid = random.nextInt(9000) + 1000; // 1000~9999
-    int last = random.nextInt(9000) + 1000; // 1000~9999
-
-    return "010-" + mid + "-" + last;
   }
 
 }
