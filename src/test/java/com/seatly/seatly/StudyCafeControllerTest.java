@@ -90,18 +90,10 @@ class StudyCafeControllerTest {
 
   @BeforeEach
   void setUp() {
-    User admin = new User();
-    admin.setName("ADMIN");
-    admin.setRole(UserRole.ADMIN);
-    admin.setEmail("admin@seatly.com");
-    admin.setPassword("admin_pw");
+    User admin = TestDataUtil.adminUser();
     userStoreService.save(admin);
 
-    User user = new User();
-    user.setName("USER");
-    user.setRole(UserRole.USER);
-    user.setEmail("user@seatly.com");
-    user.setPassword("user_pw");
+    User user = TestDataUtil.normalUser();
     userStoreService.save(user);
 
     adminUser = new CustomUserDetails(admin);
@@ -110,50 +102,14 @@ class StudyCafeControllerTest {
     normalToken = jwtProvider.createAccessToken(user.getId(), user.getName(), UserRole.USER.name());
   }
 
-  private static StudyCafe createCafeA() {
-    StudyCafe cafe = new StudyCafe();
-    cafe.setName("스터디카페 A");
-    cafe.setAddress("서울");
-    cafe.setImageUrls(List.of(
-        "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp1.png"));
-    cafe.setPhoneNumber("010-1111-1111");
-    cafe.setFacilities(List.of(Facility.AIR_CONDITIONING, Facility.WIFI));
-    cafe.setOpeningHours("오전 9시-오후 12시");
-    cafe.setDescription("스터디카페 설명");
-    return cafe;
-  }
-
-  private static StudyCafe createCafeB() {
-    StudyCafe cafe = new StudyCafe();
-    cafe.setName("스터디카페 B");
-    cafe.setAddress("부산");
-    cafe.setImageUrls(List.of(
-        "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp2.png"));
-    cafe.setPhoneNumber("010-2222-2222");
-    cafe.setFacilities(List.of(Facility.AIR_CONDITIONING, Facility.WIFI));
-    cafe.setOpeningHours("오전 8시-오후 11시");
-    cafe.setDescription("스터디카페 설명");
-    return cafe;
-  }
-
-  private static Seat createSeatA() {
-    Seat seat = new Seat();
-    seat.setName("의자 1");
-    seat.setStudyCafe(createCafeA());
-    seat.setStatus(SeatStatus.AVAILABLE);
-    seat.setPosition("(1, 1");
-    seat.setUpdatedAt(Util.now());
-    return seat;
-  }
-
   // 1. GET /api/study-cafes
   @Test
   void getStudySummaries_success() throws Exception {
     // given
-    StudyCafe cafe1 = createCafeA();
+    StudyCafe cafe1 = TestDataUtil.cafeA();
     studyCafeStoreService.save(cafe1);
 
-    StudyCafe cafe2 = createCafeB();
+    StudyCafe cafe2 = TestDataUtil.cafeB();
     studyCafeStoreService.save(cafe2);
 
     // when & then
@@ -173,7 +129,7 @@ class StudyCafeControllerTest {
   // 2. GET /api/study-cafes/{id}
   @Test
   void getStudyCafeDetail_success() throws Exception {
-    StudyCafe cafe = createCafeA();
+    StudyCafe cafe = TestDataUtil.cafeA();
     studyCafeStoreService.save(cafe);
 
     // when
@@ -182,10 +138,9 @@ class StudyCafeControllerTest {
         .andReturn();
 
     // then (DTO로 역직렬화해서 필드 단위 assert)
-    String content = result.getResponse()
-        .getContentAsString(StandardCharsets.UTF_8);
-
-    StudyCafeDetail response = objectMapper.readValue(content, StudyCafeDetail.class);
+    StudyCafeDetail response = objectMapper.readValue(
+        result.getResponse().getContentAsString(StandardCharsets.UTF_8),
+        StudyCafeDetail.class);
 
     assertThat(response.getId()).isEqualTo(cafe.getId()); // 필드명이 다르면 수정
     assertThat(response.getName()).isEqualTo(cafe.getName());
@@ -201,11 +156,11 @@ class StudyCafeControllerTest {
   @Test
   void getAdminStudyCafeSummaries_admin_only() throws Exception {
     // given: 카페 2개
-    StudyCafe cafeLinked = createCafeA();
+    StudyCafe cafeLinked = TestDataUtil.cafeA();
     cafeLinked.setName("관리카페");
     studyCafeStoreService.save(cafeLinked);
 
-    StudyCafe cafeNotLinked = createCafeB();
+    StudyCafe cafeNotLinked = TestDataUtil.cafeB();
     cafeNotLinked.setName("다른카페");
     studyCafeStoreService.save(cafeNotLinked);
 
@@ -245,19 +200,13 @@ class StudyCafeControllerTest {
   @Test
   void getStudyCafeUsage_success() throws Exception {
     // given
-    StudyCafe cafe = createCafeA();
+    StudyCafe cafe = TestDataUtil.cafeA();
     studyCafeStoreService.save(cafe);
 
     // seat 3개 생성 (프로젝트 엔티티에 맞게 수정)
-    Seat s1 = createSeatA();
-    s1.setStudyCafe(cafe);
-    s1.setName("의자 1");
-    Seat s2 = createSeatA();
-    s2.setStudyCafe(cafe);
-    s2.setName("의자 2");
-    Seat s3 = createSeatA();
-    s3.setStudyCafe(cafe);
-    s3.setName("의자 3");
+    Seat s1 = TestDataUtil.seat(cafe, "의자 1");
+    Seat s2 = TestDataUtil.seat(cafe, "의자 2");
+    Seat s3 = TestDataUtil.seat(cafe, "의자 3");
     seatStoreService.save(s1);
     seatStoreService.save(s2);
     seatStoreService.save(s3);
@@ -304,7 +253,7 @@ class StudyCafeControllerTest {
   // ===========================
   @Test
   void create_then_get_detail_value_match() throws Exception {
-    StudyCafe cafe = createCafeA();
+    StudyCafe cafe = TestDataUtil.cafeA();
     StudyCafeDetailPost post = new StudyCafeDetailPost();
     post.setName(cafe.getName());
     post.setAddress(cafe.getAddress());
@@ -345,7 +294,7 @@ class StudyCafeControllerTest {
   // ===========================
   @Test
   void updateStudyCafe() throws Exception {
-    StudyCafe cafe = createCafeA();
+    StudyCafe cafe = TestDataUtil.cafeA();
     cafe.setName("이전");
     StudyCafe saveCafe = studyCafeStoreService.save(cafe);
 
@@ -369,7 +318,7 @@ class StudyCafeControllerTest {
   // ===========================
   @Test
   void add_favorite_success() throws Exception {
-    StudyCafe cafe = studyCafeStoreService.save(createCafeA());
+    StudyCafe cafe = studyCafeStoreService.save(TestDataUtil.cafeA());
 
     mockMvc.perform(post("/api/study-cafes/" + cafe.getId() + "/favorite")
         .header(HttpHeaders.AUTHORIZATION, "Bearer " + normalToken))
@@ -390,7 +339,7 @@ class StudyCafeControllerTest {
   @Test
   void delete_favorite_success() throws Exception {
     // given: 카페 + 즐겨찾기 미리 생성
-    StudyCafe cafe = studyCafeStoreService.save(createCafeA());
+    StudyCafe cafe = studyCafeStoreService.save(TestDataUtil.cafeA());
 
     UserStudyCafeLink link = new UserStudyCafeLink();
     link.setStudyCafe(cafe);
@@ -426,7 +375,7 @@ class StudyCafeControllerTest {
     User user = userStoreService.findByIdOrNull(normalUser.getId());
 
     // user_time_pass 미리 생성
-    StudyCafe cafe = studyCafeStoreService.save(createCafeA());
+    StudyCafe cafe = studyCafeStoreService.save(TestDataUtil.cafeA());
     UserTimePass timePass = new UserTimePass();
     timePass.setId(new UserTimePassId(cafe.getId(), user.getId()));
     timePass.setStudyCafe(cafe);
@@ -436,7 +385,7 @@ class StudyCafeControllerTest {
     userTimePassStoreService.save(timePass);
 
     // 다른 카페의 timePass 하나 더 생성
-    StudyCafe otherCafe = studyCafeStoreService.save(createCafeB());
+    StudyCafe otherCafe = studyCafeStoreService.save(TestDataUtil.cafeB());
     UserTimePass otherTimePass = new UserTimePass();
     otherTimePass.setId(new UserTimePassId(otherCafe.getId(), user.getId()));
     otherTimePass.setStudyCafe(otherCafe);
@@ -472,7 +421,7 @@ class StudyCafeControllerTest {
   @Test
   void delete_user_time_forbidden_when_not_admin() throws Exception {
     // given
-    StudyCafe cafe = studyCafeStoreService.save(createCafeA());
+    StudyCafe cafe = studyCafeStoreService.save(TestDataUtil.cafeA());
 
     // when & then
     mockMvc.perform(delete("/api/study-cafes/" + cafe.getId() + "/users/2/time")
