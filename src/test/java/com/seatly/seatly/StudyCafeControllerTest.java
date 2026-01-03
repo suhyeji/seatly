@@ -30,17 +30,12 @@ import com.seatly.seatly.domain.StudyCafe;
 import com.seatly.seatly.domain.User;
 import com.seatly.seatly.domain.UserStudyCafeLink;
 import com.seatly.seatly.domain.UserTimePass;
-import com.seatly.seatly.domain.enums.Facility;
-import com.seatly.seatly.domain.enums.SeatStatus;
-import com.seatly.seatly.domain.enums.SessionStatus;
 import com.seatly.seatly.domain.enums.UserCafeLinkType;
 import com.seatly.seatly.domain.enums.UserRole;
-import com.seatly.seatly.domain.keys.UserTimePassId;
 import com.seatly.seatly.dto.TimePass;
 import com.seatly.seatly.dto.studycafe.StudyCafeDetail;
 import com.seatly.seatly.dto.studycafe.StudyCafeDetailPost;
 import com.seatly.seatly.dto.studycafe.StudyCafeSummary;
-import com.seatly.seatly.global.Util;
 import com.seatly.seatly.global.security.JwtTokenProvider;
 import com.seatly.seatly.store.SeatStoreService;
 import com.seatly.seatly.store.SessionStoreService;
@@ -90,10 +85,10 @@ class StudyCafeControllerTest {
 
   @BeforeEach
   void setUp() {
-    User admin = TestDataUtil.adminUser();
+    User admin = RandomUtil.randomAdminUser();
     userStoreService.save(admin);
 
-    User user = TestDataUtil.normalUser();
+    User user = RandomUtil.randomNormalUser();
     userStoreService.save(user);
 
     adminUser = new CustomUserDetails(admin);
@@ -106,30 +101,28 @@ class StudyCafeControllerTest {
   @Test
   void getStudySummaries_success() throws Exception {
     // given
-    StudyCafe cafe1 = TestDataUtil.cafeA();
+    StudyCafe cafe1 = RandomUtil.randomStudyCafe();
     studyCafeStoreService.save(cafe1);
 
-    StudyCafe cafe2 = TestDataUtil.cafeB();
+    StudyCafe cafe2 = RandomUtil.randomStudyCafe();
     studyCafeStoreService.save(cafe2);
 
     // when & then
     mockMvc.perform(get("/api/study-cafes"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].name").value("스터디카페 A"))
-        .andExpect(jsonPath("$[0].address").value("서울"))
-        .andExpect(jsonPath("$[0].mainImageUrl")
-            .value("https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp1.png"))
-        .andExpect(jsonPath("$[1].name").value("스터디카페 B"))
-        .andExpect(jsonPath("$[1].address").value("부산"))
-        .andExpect(jsonPath("$[1].mainImageUrl")
-            .value("https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp2.png"));
+        .andExpect(jsonPath("$[0].name").value(cafe1.getName()))
+        .andExpect(jsonPath("$[0].address").value(cafe1.getAddress()))
+        .andExpect(jsonPath("$[0].mainImageUrl").value(cafe1.getImageUrls().get(0)))
+        .andExpect(jsonPath("$[1].name").value(cafe2.getName()))
+        .andExpect(jsonPath("$[1].address").value(cafe2.getAddress()))
+        .andExpect(jsonPath("$[1].mainImageUrl").value(cafe2.getImageUrls().get(0)));
   }
 
   // 2. GET /api/study-cafes/{id}
   @Test
   void getStudyCafeDetail_success() throws Exception {
-    StudyCafe cafe = TestDataUtil.cafeA();
+    StudyCafe cafe = RandomUtil.randomStudyCafe();
     studyCafeStoreService.save(cafe);
 
     // when
@@ -156,19 +149,15 @@ class StudyCafeControllerTest {
   @Test
   void getAdminStudyCafeSummaries_admin_only() throws Exception {
     // given: 카페 2개
-    StudyCafe cafeLinked = TestDataUtil.cafeA();
-    cafeLinked.setName("관리카페");
+    StudyCafe cafeLinked = RandomUtil.randomStudyCafe();
     studyCafeStoreService.save(cafeLinked);
 
-    StudyCafe cafeNotLinked = TestDataUtil.cafeB();
-    cafeNotLinked.setName("다른카페");
+    StudyCafe cafeNotLinked = RandomUtil.randomStudyCafe();
     studyCafeStoreService.save(cafeNotLinked);
 
     // given: admin-user <-> cafeLinked ADMIN 링크 생성
-    UserStudyCafeLink link = new UserStudyCafeLink();
-    link.setUser(userStoreService.findByIdOrNull(adminUser.getId()));
-    link.setStudyCafe(cafeLinked);
-    link.setLinkType(UserCafeLinkType.ADMIN);
+    User user = userStoreService.findByIdOrNull(adminUser.getId());
+    UserStudyCafeLink link = RandomUtil.adminLink(user, cafeLinked);
     linkStoreService.save(link);
 
     // when
@@ -186,7 +175,7 @@ class StudyCafeControllerTest {
 
     assertThat(response).hasSize(1);
     assertThat(response.get(0).getId()).isEqualTo(cafeLinked.getId()); // 필드명 다르면 수정
-    assertThat(response.get(0).getName()).isEqualTo("관리카페");
+    assertThat(response.get(0).getName()).isEqualTo(cafeLinked.getName());
   }
 
   @Test
@@ -200,45 +189,27 @@ class StudyCafeControllerTest {
   @Test
   void getStudyCafeUsage_success() throws Exception {
     // given
-    StudyCafe cafe = TestDataUtil.cafeA();
+    StudyCafe cafe = RandomUtil.randomStudyCafe();
     studyCafeStoreService.save(cafe);
 
     // seat 3개 생성 (프로젝트 엔티티에 맞게 수정)
-    Seat s1 = TestDataUtil.seat(cafe, "의자 1");
-    Seat s2 = TestDataUtil.seat(cafe, "의자 2");
-    Seat s3 = TestDataUtil.seat(cafe, "의자 3");
+    Seat s1 = RandomUtil.randomSeat(cafe);
+    Seat s2 = RandomUtil.randomSeat(cafe);
+    Seat s3 = RandomUtil.randomSeat(cafe);
     seatStoreService.save(s1);
     seatStoreService.save(s2);
     seatStoreService.save(s3);
 
     // 사용자
-    User user1 = new User();
-    user1.setName("USER1");
-    user1.setRole(UserRole.USER);
-    user1.setEmail("user1@seatly.com");
-    user1.setPassword("user_pw1");
+    User user1 = RandomUtil.randomNormalUser();
     userStoreService.save(user1);
-
-    User user2 = new User();
-    user2.setName("USER2");
-    user2.setRole(UserRole.USER);
-    user2.setEmail("user2@seatly.com");
-    user2.setPassword("user_pw2");
+    User user2 = RandomUtil.randomNormalUser();
     userStoreService.save(user2);
 
     // session 2개 생성 (프로젝트 엔티티/상태에 맞게 수정)
-    Session se1 = new Session();
-    se1.setSeat(s1);
-    se1.setUser(user1);
-    se1.setStatus(SessionStatus.IN_USE);
-    se1.setStartTime(Util.now());
+    Session se1 = RandomUtil.randomSession(s1, user1);
     sessionStoreService.save(se1);
-
-    Session se2 = new Session();
-    se2.setSeat(s2);
-    se2.setUser(user2);
-    se2.setStatus(SessionStatus.IN_USE);
-    se2.setStartTime(Util.now());
+    Session se2 = RandomUtil.randomSession(s2, user2);
     sessionStoreService.save(se2);
 
     // when & then
@@ -253,7 +224,7 @@ class StudyCafeControllerTest {
   // ===========================
   @Test
   void create_then_get_detail_value_match() throws Exception {
-    StudyCafe cafe = TestDataUtil.cafeA();
+    StudyCafe cafe = RandomUtil.randomStudyCafe();
     StudyCafeDetailPost post = new StudyCafeDetailPost();
     post.setName(cafe.getName());
     post.setAddress(cafe.getAddress());
@@ -280,13 +251,13 @@ class StudyCafeControllerTest {
         result.getResponse().getContentAsString(StandardCharsets.UTF_8),
         StudyCafeDetail.class);
 
-    assertThat(response.getName()).isEqualTo(post.getName());
-    assertThat(response.getAddress()).isEqualTo(post.getAddress());
-    assertThat(response.getImageUrls()).isEqualTo(post.getImageUrls());
-    assertThat(response.getPhoneNumber()).isEqualTo(post.getPhoneNumber());
-    assertThat(response.getFacilities()).isEqualTo(post.getFacilities());
-    assertThat(response.getOpeningHours()).isEqualTo(post.getOpeningHours());
-    assertThat(response.getDescription()).isEqualTo(post.getDescription());
+    assertThat(response.getName()).isEqualTo(saved.getName());
+    assertThat(response.getAddress()).isEqualTo(saved.getAddress());
+    assertThat(response.getImageUrls()).isEqualTo(saved.getImageUrls());
+    assertThat(response.getPhoneNumber()).isEqualTo(saved.getPhoneNumber());
+    assertThat(response.getFacilities()).isEqualTo(saved.getFacilities());
+    assertThat(response.getOpeningHours()).isEqualTo(saved.getOpeningHours());
+    assertThat(response.getDescription()).isEqualTo(saved.getDescription());
   }
 
   // ===========================
@@ -294,13 +265,12 @@ class StudyCafeControllerTest {
   // ===========================
   @Test
   void updateStudyCafe() throws Exception {
-    StudyCafe cafe = TestDataUtil.cafeA();
-    cafe.setName("이전");
+    StudyCafe cafe = RandomUtil.randomStudyCafe();
     StudyCafe saveCafe = studyCafeStoreService.save(cafe);
 
     StudyCafeDetailPost update = new StudyCafeDetailPost();
-    update.setId(saveCafe.getId());
     update.setName("변경");
+    update.setId(saveCafe.getId());
 
     mockMvc.perform(patch("/api/study-cafes/" + cafe.getId())
         .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
@@ -309,8 +279,7 @@ class StudyCafeControllerTest {
         .andExpect(status().isOk());
 
     StudyCafe updated = studyCafeStoreService.findByIdOrNull(cafe.getId());
-
-    assertThat(updated.getName()).isEqualTo("변경");
+    assertThat(updated.getName()).isEqualTo(update.getName());
   }
 
   // ===========================
@@ -318,49 +287,52 @@ class StudyCafeControllerTest {
   // ===========================
   @Test
   void add_favorite_success() throws Exception {
-    StudyCafe cafe = studyCafeStoreService.save(TestDataUtil.cafeA());
+    User user = userStoreService.save(RandomUtil.randomNormalUser());
+    String token = jwtProvider.createAccessToken(user.getId(), user.getName(), UserRole.USER.name());
+    StudyCafe cafe = studyCafeStoreService.save(RandomUtil.randomStudyCafe());
 
     mockMvc.perform(post("/api/study-cafes/" + cafe.getId() + "/favorite")
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + normalToken))
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
         .andExpect(status().isOk());
 
     List<UserStudyCafeLink> links = linkStoreService.getUserStudyCafeLinkByUserIdAndLinkType(
-        normalUser.getId(),
+        user.getId(),
         UserCafeLinkType.FAVORITE);
 
     assertThat(links).hasSize(1);
 
     UserStudyCafeLink link = links.get(0);
     assertThat(link.getStudyCafe().getId()).isEqualTo(cafe.getId());
-    assertThat(link.getUser().getId()).isEqualTo(normalUser.getId());
+    assertThat(link.getUser().getId()).isEqualTo(user.getId());
     assertThat(link.getLinkType()).isEqualTo(UserCafeLinkType.FAVORITE);
   }
 
   @Test
   void delete_favorite_success() throws Exception {
     // given: 카페 + 즐겨찾기 미리 생성
-    StudyCafe cafe = studyCafeStoreService.save(TestDataUtil.cafeA());
+    StudyCafe cafe = studyCafeStoreService.save(RandomUtil.randomStudyCafe());
+    studyCafeStoreService.save(cafe);
+    User user = RandomUtil.randomNormalUser();
+    userStoreService.save(user);
+    String token = jwtProvider.createAccessToken(user.getId(), user.getName(), UserRole.USER.name());
 
-    UserStudyCafeLink link = new UserStudyCafeLink();
-    link.setStudyCafe(cafe);
-    link.setUser(userStoreService.findByIdOrNull(normalUser.getId()));
-    link.setLinkType(UserCafeLinkType.FAVORITE);
+    UserStudyCafeLink link = RandomUtil.favoriteLink(user, cafe);
     linkStoreService.save(link);
 
     // sanity check (사전 조건 검증)
     List<UserStudyCafeLink> before = linkStoreService.getUserStudyCafeLinkByUserIdAndLinkType(
-        normalUser.getId(),
+        user.getId(),
         UserCafeLinkType.FAVORITE);
     assertThat(before).hasSize(1);
 
     // when: 즐겨찾기 삭제 요청
     mockMvc.perform(delete("/api/study-cafes/" + cafe.getId() + "/favorite")
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + normalToken))
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
         .andExpect(status().isOk());
 
     // then: link 테이블에서 제거되었는지 검증
     List<UserStudyCafeLink> after = linkStoreService.getUserStudyCafeLinkByUserIdAndLinkType(
-        normalUser.getId(),
+        user.getId(),
         UserCafeLinkType.FAVORITE);
 
     assertThat(after).isEmpty();
@@ -372,26 +344,18 @@ class StudyCafeControllerTest {
   @Test
   void delete_user_time_by_study_cafe_id_when_admin() throws Exception {
     // given
-    User user = userStoreService.findByIdOrNull(normalUser.getId());
+    StudyCafe cafe = studyCafeStoreService.save(RandomUtil.randomStudyCafe());
+    studyCafeStoreService.save(cafe);
+    User user = RandomUtil.randomNormalUser();
+    userStoreService.save(user);
 
     // user_time_pass 미리 생성
-    StudyCafe cafe = studyCafeStoreService.save(TestDataUtil.cafeA());
-    UserTimePass timePass = new UserTimePass();
-    timePass.setId(new UserTimePassId(cafe.getId(), user.getId()));
-    timePass.setStudyCafe(cafe);
-    timePass.setUser(user);
-    timePass.setLeftTime(3600L);
-    timePass.setTotalTime(7200L);
+    UserTimePass timePass = RandomUtil.randomTimePass(cafe, user);
     userTimePassStoreService.save(timePass);
 
     // 다른 카페의 timePass 하나 더 생성
-    StudyCafe otherCafe = studyCafeStoreService.save(TestDataUtil.cafeB());
-    UserTimePass otherTimePass = new UserTimePass();
-    otherTimePass.setId(new UserTimePassId(otherCafe.getId(), user.getId()));
-    otherTimePass.setStudyCafe(otherCafe);
-    otherTimePass.setUser(user);
-    otherTimePass.setLeftTime(1000L);
-    otherTimePass.setTotalTime(2000L);
+    StudyCafe otherCafe = studyCafeStoreService.save(RandomUtil.randomStudyCafe());
+    UserTimePass otherTimePass = RandomUtil.randomTimePass(otherCafe, user);
     userTimePassStoreService.save(otherTimePass);
 
     // sanity check
@@ -410,7 +374,6 @@ class StudyCafeControllerTest {
         .andExpect(status().isOk());
 
     // then: DB에서 실제 삭제되었는지 검증
-
     List<TimePass> after = userTimePassStoreService.getTimePassesByUserId(user.getId());
     assertThat(after).hasSize(1);
     assertThat(after.get(0).getUserId()).isEqualTo(user.getId());
@@ -421,7 +384,7 @@ class StudyCafeControllerTest {
   @Test
   void delete_user_time_forbidden_when_not_admin() throws Exception {
     // given
-    StudyCafe cafe = studyCafeStoreService.save(TestDataUtil.cafeA());
+    StudyCafe cafe = studyCafeStoreService.save(RandomUtil.randomStudyCafe());
 
     // when & then
     mockMvc.perform(delete("/api/study-cafes/" + cafe.getId() + "/users/2/time")
