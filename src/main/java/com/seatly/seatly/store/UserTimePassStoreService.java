@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.seatly.seatly.domain.UserTimePass;
 import com.seatly.seatly.domain.keys.UserTimePassId;
 import com.seatly.seatly.dto.TimePass;
 import com.seatly.seatly.dto.user.UserTimePassInfo;
@@ -33,6 +34,10 @@ public class UserTimePassStoreService {
 
   public void deleteByTimePassId(UserTimePassId timePassId) {
     store.deleteById(timePassId);
+  }
+
+  public void save(UserTimePass timePass) {
+    store.save(timePass);
   }
 
 }
