@@ -17,7 +17,7 @@ public class StudyCafeDetailPost {
   private Long id;
   private String name;
   private String address;
-  private List<String> images;
+  private List<String> imageUrls;
   private String phoneNumber;
   private List<Facility> facilities;
   private String openingHours;
@@ -27,7 +27,7 @@ public class StudyCafeDetailPost {
     StudyCafe entity = new StudyCafe();
     entity.setName(name);
     entity.setAddress(address);
-    entity.setImageUrls(images);
+    entity.setImageUrls(imageUrls);
     entity.setPhoneNumber(phoneNumber);
     entity.setFacilities(facilities);
     entity.setOpeningHours(openingHours);
@@ -43,8 +43,8 @@ public class StudyCafeDetailPost {
     if (address != null) {
       entity.setAddress(address);
     }
-    if (images != null) {
-      entity.setImageUrls(images);
+    if (imageUrls != null) {
+      entity.setImageUrls(imageUrls);
     }
     if (phoneNumber != null) {
       entity.setPhoneNumber(phoneNumber);

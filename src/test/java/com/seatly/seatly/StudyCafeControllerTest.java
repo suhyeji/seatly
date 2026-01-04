@@ -18,7 +18,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -30,21 +29,20 @@ import com.seatly.seatly.domain.Session;
 import com.seatly.seatly.domain.StudyCafe;
 import com.seatly.seatly.domain.User;
 import com.seatly.seatly.domain.UserStudyCafeLink;
-import com.seatly.seatly.domain.enums.Facility;
-import com.seatly.seatly.domain.enums.SeatStatus;
-import com.seatly.seatly.domain.enums.SessionStatus;
+import com.seatly.seatly.domain.UserTimePass;
 import com.seatly.seatly.domain.enums.UserCafeLinkType;
 import com.seatly.seatly.domain.enums.UserRole;
+import com.seatly.seatly.dto.TimePass;
 import com.seatly.seatly.dto.studycafe.StudyCafeDetail;
 import com.seatly.seatly.dto.studycafe.StudyCafeDetailPost;
 import com.seatly.seatly.dto.studycafe.StudyCafeSummary;
-import com.seatly.seatly.global.Util;
 import com.seatly.seatly.global.security.JwtTokenProvider;
 import com.seatly.seatly.store.SeatStoreService;
 import com.seatly.seatly.store.SessionStoreService;
 import com.seatly.seatly.store.StudyCafeStoreService;
 import com.seatly.seatly.store.UserStoreService;
 import com.seatly.seatly.store.UserStudyCafeLinkStoreService;
+import com.seatly.seatly.store.UserTimePassStoreService;
 
 import jakarta.transaction.Transactional;
 
@@ -75,6 +73,9 @@ class StudyCafeControllerTest {
   SeatStoreService seatStoreService;
 
   @Autowired
+  UserTimePassStoreService userTimePassStoreService;
+
+  @Autowired
   JwtTokenProvider jwtProvider;
 
   private CustomUserDetails adminUser;
@@ -84,18 +85,10 @@ class StudyCafeControllerTest {
 
   @BeforeEach
   void setUp() {
-    User admin = new User();
-    admin.setName("ADMIN");
-    admin.setRole(UserRole.ADMIN);
-    admin.setEmail("admin@seatly.com");
-    admin.setPassword("admin_pw");
+    User admin = RandomUtil.randomAdminUser();
     userStoreService.save(admin);
 
-    User user = new User();
-    user.setName("USER");
-    user.setRole(UserRole.USER);
-    user.setEmail("user@seatly.com");
-    user.setPassword("user_pw");
+    User user = RandomUtil.randomNormalUser();
     userStoreService.save(user);
 
     adminUser = new CustomUserDetails(admin);
@@ -104,70 +97,32 @@ class StudyCafeControllerTest {
     normalToken = jwtProvider.createAccessToken(user.getId(), user.getName(), UserRole.USER.name());
   }
 
-  private static StudyCafe createCafeA() {
-    StudyCafe cafe = new StudyCafe();
-    cafe.setName("스터디카페 A");
-    cafe.setAddress("서울");
-    cafe.setImageUrls(List.of(
-        "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp1.png"));
-    cafe.setPhoneNumber("010-1111-1111");
-    cafe.setFacilities(List.of(Facility.AIR_CONDITIONING, Facility.WIFI));
-    cafe.setOpeningHours("오전 9시-오후 12시");
-    cafe.setDescription("스터디카페 설명");
-    return cafe;
-  }
-
-  private static StudyCafe createCafeB() {
-    StudyCafe cafe = new StudyCafe();
-    cafe.setName("스터디카페 B");
-    cafe.setAddress("부산");
-    cafe.setImageUrls(List.of(
-        "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp2.png"));
-    cafe.setPhoneNumber("010-2222-2222");
-    cafe.setFacilities(List.of(Facility.AIR_CONDITIONING, Facility.WIFI));
-    cafe.setOpeningHours("오전 8시-오후 11시");
-    cafe.setDescription("스터디카페 설명");
-    return cafe;
-  }
-
-  private static Seat createSeatA() {
-    Seat seat = new Seat();
-    seat.setName("의자 1");
-    seat.setStudyCafe(createCafeA());
-    seat.setStatus(SeatStatus.AVAILABLE);
-    seat.setPosition("(1, 1");
-    seat.setUpdatedAt(Util.now());
-    return seat;
-  }
-
   // 1. GET /api/study-cafes
   @Test
   void getStudySummaries_success() throws Exception {
     // given
-    StudyCafe cafe1 = createCafeA();
+    StudyCafe cafe1 = RandomUtil.randomStudyCafe();
     studyCafeStoreService.save(cafe1);
 
-    StudyCafe cafe2 = createCafeB();
+    StudyCafe cafe2 = RandomUtil.randomStudyCafe();
     studyCafeStoreService.save(cafe2);
 
     // when & then
     mockMvc.perform(get("/api/study-cafes"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].name").value("스터디카페 A"))
-        .andExpect(jsonPath("$[0].address").value("서울"))
-        .andExpect(jsonPath("$[0].mainImageUrl")
-            .value("https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp1.png"))
-        .andExpect(jsonPath("$[1].name").value("스터디카페 B"))
-        .andExpect(jsonPath("$[1].address").value("부산"))
-        .andExpect(jsonPath("$[1].mainImageUrl")
-            .value("https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp2.png"));
+        .andExpect(jsonPath("$[0].name").value(cafe1.getName()))
+        .andExpect(jsonPath("$[0].address").value(cafe1.getAddress()))
+        .andExpect(jsonPath("$[0].mainImageUrl").value(cafe1.getImageUrls().get(0)))
+        .andExpect(jsonPath("$[1].name").value(cafe2.getName()))
+        .andExpect(jsonPath("$[1].address").value(cafe2.getAddress()))
+        .andExpect(jsonPath("$[1].mainImageUrl").value(cafe2.getImageUrls().get(0)));
   }
 
   // 2. GET /api/study-cafes/{id}
   @Test
   void getStudyCafeDetail_success() throws Exception {
-    StudyCafe cafe = createCafeA();
+    StudyCafe cafe = RandomUtil.randomStudyCafe();
     studyCafeStoreService.save(cafe);
 
     // when
@@ -176,10 +131,9 @@ class StudyCafeControllerTest {
         .andReturn();
 
     // then (DTO로 역직렬화해서 필드 단위 assert)
-    String content = result.getResponse()
-        .getContentAsString(StandardCharsets.UTF_8);
-
-    StudyCafeDetail response = objectMapper.readValue(content, StudyCafeDetail.class);
+    StudyCafeDetail response = objectMapper.readValue(
+        result.getResponse().getContentAsString(StandardCharsets.UTF_8),
+        StudyCafeDetail.class);
 
     assertThat(response.getId()).isEqualTo(cafe.getId()); // 필드명이 다르면 수정
     assertThat(response.getName()).isEqualTo(cafe.getName());
@@ -195,19 +149,15 @@ class StudyCafeControllerTest {
   @Test
   void getAdminStudyCafeSummaries_admin_only() throws Exception {
     // given: 카페 2개
-    StudyCafe cafeLinked = createCafeA();
-    cafeLinked.setName("관리카페");
+    StudyCafe cafeLinked = RandomUtil.randomStudyCafe();
     studyCafeStoreService.save(cafeLinked);
 
-    StudyCafe cafeNotLinked = createCafeB();
-    cafeNotLinked.setName("다른카페");
+    StudyCafe cafeNotLinked = RandomUtil.randomStudyCafe();
     studyCafeStoreService.save(cafeNotLinked);
 
     // given: admin-user <-> cafeLinked ADMIN 링크 생성
-    UserStudyCafeLink link = new UserStudyCafeLink();
-    link.setUser(userStoreService.findByIdOrNull(adminUser.getId()));
-    link.setStudyCafe(cafeLinked);
-    link.setLinkType(UserCafeLinkType.ADMIN);
+    User user = userStoreService.findByIdOrNull(adminUser.getId());
+    UserStudyCafeLink link = RandomUtil.adminLink(user, cafeLinked);
     linkStoreService.save(link);
 
     // when
@@ -225,7 +175,7 @@ class StudyCafeControllerTest {
 
     assertThat(response).hasSize(1);
     assertThat(response.get(0).getId()).isEqualTo(cafeLinked.getId()); // 필드명 다르면 수정
-    assertThat(response.get(0).getName()).isEqualTo("관리카페");
+    assertThat(response.get(0).getName()).isEqualTo(cafeLinked.getName());
   }
 
   @Test
@@ -239,51 +189,27 @@ class StudyCafeControllerTest {
   @Test
   void getStudyCafeUsage_success() throws Exception {
     // given
-    StudyCafe cafe = createCafeA();
+    StudyCafe cafe = RandomUtil.randomStudyCafe();
     studyCafeStoreService.save(cafe);
 
     // seat 3개 생성 (프로젝트 엔티티에 맞게 수정)
-    Seat s1 = createSeatA();
-    s1.setStudyCafe(cafe);
-    s1.setName("의자 1");
-    Seat s2 = createSeatA();
-    s2.setStudyCafe(cafe);
-    s2.setName("의자 2");
-    Seat s3 = createSeatA();
-    s3.setStudyCafe(cafe);
-    s3.setName("의자 3");
+    Seat s1 = RandomUtil.randomSeat(cafe);
+    Seat s2 = RandomUtil.randomSeat(cafe);
+    Seat s3 = RandomUtil.randomSeat(cafe);
     seatStoreService.save(s1);
     seatStoreService.save(s2);
     seatStoreService.save(s3);
 
     // 사용자
-    User user1 = new User();
-    user1.setName("USER1");
-    user1.setRole(UserRole.USER);
-    user1.setEmail("user1@seatly.com");
-    user1.setPassword("user_pw1");
+    User user1 = RandomUtil.randomNormalUser();
     userStoreService.save(user1);
-
-    User user2 = new User();
-    user2.setName("USER2");
-    user2.setRole(UserRole.USER);
-    user2.setEmail("user2@seatly.com");
-    user2.setPassword("user_pw2");
+    User user2 = RandomUtil.randomNormalUser();
     userStoreService.save(user2);
 
     // session 2개 생성 (프로젝트 엔티티/상태에 맞게 수정)
-    Session se1 = new Session();
-    se1.setSeat(s1);
-    se1.setUser(user1);
-    se1.setStatus(SessionStatus.IN_USE);
-    se1.setStartTime(Util.now());
+    Session se1 = RandomUtil.randomSession(s1, user1);
     sessionStoreService.save(se1);
-
-    Session se2 = new Session();
-    se2.setSeat(s2);
-    se2.setUser(user2);
-    se2.setStatus(SessionStatus.IN_USE);
-    se2.setStartTime(Util.now());
+    Session se2 = RandomUtil.randomSession(s2, user2);
     sessionStoreService.save(se2);
 
     // when & then
@@ -298,11 +224,11 @@ class StudyCafeControllerTest {
   // ===========================
   @Test
   void create_then_get_detail_value_match() throws Exception {
-    StudyCafe cafe = createCafeA();
+    StudyCafe cafe = RandomUtil.randomStudyCafe();
     StudyCafeDetailPost post = new StudyCafeDetailPost();
     post.setName(cafe.getName());
     post.setAddress(cafe.getAddress());
-    post.setImages(cafe.getImageUrls());
+    post.setImageUrls(cafe.getImageUrls());
     post.setPhoneNumber(cafe.getPhoneNumber());
     post.setFacilities(cafe.getFacilities());
     post.setOpeningHours(cafe.getOpeningHours());
@@ -327,7 +253,7 @@ class StudyCafeControllerTest {
 
     assertThat(response.getName()).isEqualTo(post.getName());
     assertThat(response.getAddress()).isEqualTo(post.getAddress());
-    assertThat(response.getImageUrls()).isEqualTo(post.getImages());
+    assertThat(response.getImageUrls()).isEqualTo(post.getImageUrls());
     assertThat(response.getPhone()).isEqualTo(post.getPhoneNumber());
     assertThat(response.getFacilities()).isEqualTo(post.getFacilities());
     assertThat(response.getOpeningHours()).isEqualTo(post.getOpeningHours());
@@ -339,22 +265,21 @@ class StudyCafeControllerTest {
   // ===========================
   @Test
   void updateStudyCafe() throws Exception {
-    StudyCafe cafe = new StudyCafe();
-    cafe.setName("이전");
-    studyCafeStoreService.save(cafe);
+    StudyCafe cafe = RandomUtil.randomStudyCafe();
+    StudyCafe saveCafe = studyCafeStoreService.save(cafe);
 
     StudyCafeDetailPost update = new StudyCafeDetailPost();
     update.setName("변경");
+    update.setId(saveCafe.getId());
 
     mockMvc.perform(patch("/api/study-cafes/" + cafe.getId())
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + normalToken)
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(update)))
         .andExpect(status().isOk());
 
     StudyCafe updated = studyCafeStoreService.findByIdOrNull(cafe.getId());
-
-    assertThat(updated.getName()).isEqualTo("변경");
+    assertThat(updated.getName()).isEqualTo(update.getName());
   }
 
   // ===========================
@@ -362,23 +287,109 @@ class StudyCafeControllerTest {
   // ===========================
   @Test
   void add_favorite_success() throws Exception {
-    StudyCafe cafe = studyCafeStoreService.save(new StudyCafe());
+    User user = userStoreService.save(RandomUtil.randomNormalUser());
+    String token = jwtProvider.createAccessToken(user.getId(), user.getName(), UserRole.USER.name());
+    StudyCafe cafe = studyCafeStoreService.save(RandomUtil.randomStudyCafe());
 
     mockMvc.perform(post("/api/study-cafes/" + cafe.getId() + "/favorite")
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + normalToken))
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
         .andExpect(status().isOk());
+
+    List<UserStudyCafeLink> links = linkStoreService.getUserStudyCafeLinkByUserIdAndLinkType(
+        user.getId(),
+        UserCafeLinkType.FAVORITE);
+
+    assertThat(links).hasSize(1);
+
+    UserStudyCafeLink link = links.get(0);
+    assertThat(link.getStudyCafe().getId()).isEqualTo(cafe.getId());
+    assertThat(link.getUser().getId()).isEqualTo(user.getId());
+    assertThat(link.getLinkType()).isEqualTo(UserCafeLinkType.FAVORITE);
+  }
+
+  @Test
+  void delete_favorite_success() throws Exception {
+    // given: 카페 + 즐겨찾기 미리 생성
+    StudyCafe cafe = studyCafeStoreService.save(RandomUtil.randomStudyCafe());
+    studyCafeStoreService.save(cafe);
+    User user = RandomUtil.randomNormalUser();
+    userStoreService.save(user);
+    String token = jwtProvider.createAccessToken(user.getId(), user.getName(), UserRole.USER.name());
+
+    UserStudyCafeLink link = RandomUtil.favoriteLink(user, cafe);
+    linkStoreService.save(link);
+
+    // sanity check (사전 조건 검증)
+    List<UserStudyCafeLink> before = linkStoreService.getUserStudyCafeLinkByUserIdAndLinkType(
+        user.getId(),
+        UserCafeLinkType.FAVORITE);
+    assertThat(before).hasSize(1);
+
+    // when: 즐겨찾기 삭제 요청
+    mockMvc.perform(delete("/api/study-cafes/" + cafe.getId() + "/favorite")
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+        .andExpect(status().isOk());
+
+    // then: link 테이블에서 제거되었는지 검증
+    List<UserStudyCafeLink> after = linkStoreService.getUserStudyCafeLinkByUserIdAndLinkType(
+        user.getId(),
+        UserCafeLinkType.FAVORITE);
+
+    assertThat(after).isEmpty();
   }
 
   // ===========================
   // 관리자 전용 - 사용자 시간 삭제
   // ===========================
   @Test
-  void delete_user_time_admin_only() throws Exception {
-    StudyCafe cafe = studyCafeStoreService.save(new StudyCafe());
+  void delete_user_time_by_study_cafe_id_when_admin() throws Exception {
+    // given
+    StudyCafe cafe = studyCafeStoreService.save(RandomUtil.randomStudyCafe());
+    studyCafeStoreService.save(cafe);
+    User user = RandomUtil.randomNormalUser();
+    userStoreService.save(user);
 
+    // user_time_pass 미리 생성
+    UserTimePass timePass = RandomUtil.randomTimePass(cafe, user);
+    userTimePassStoreService.save(timePass);
+
+    // 다른 카페의 timePass 하나 더 생성
+    StudyCafe otherCafe = studyCafeStoreService.save(RandomUtil.randomStudyCafe());
+    UserTimePass otherTimePass = RandomUtil.randomTimePass(otherCafe, user);
+    userTimePassStoreService.save(otherTimePass);
+
+    // sanity check
+    List<TimePass> before = userTimePassStoreService.findAllByUserId(user.getId());
+
+    assertThat(before).hasSize(2);
+    assertThat(before.get(0).getUserId()).isEqualTo(user.getId());
+    assertThat(before.get(0).getStudyCafeId()).isEqualTo(cafe.getId());
+    assertThat(before.get(1).getUserId()).isEqualTo(user.getId());
+    assertThat(before.get(1).getStudyCafeId()).isEqualTo(otherCafe.getId());
+
+    // when
+    mockMvc.perform(delete("/api/study-cafes/" + cafe.getId()
+        + "/users/" + user.getId() + "/time")
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+        .andExpect(status().isOk());
+
+    // then: DB에서 실제 삭제되었는지 검증
+    List<TimePass> after = userTimePassStoreService.findAllByUserId(user.getId());
+    assertThat(after).hasSize(1);
+    assertThat(after.get(0).getUserId()).isEqualTo(user.getId());
+    assertThat(after.get(0).getStudyCafeId()).isEqualTo(otherCafe.getId());
+
+  }
+
+  @Test
+  void delete_user_time_forbidden_when_not_admin() throws Exception {
+    // given
+    StudyCafe cafe = studyCafeStoreService.save(RandomUtil.randomStudyCafe());
+
+    // when & then
     mockMvc.perform(delete("/api/study-cafes/" + cafe.getId() + "/users/2/time")
         .header(HttpHeaders.AUTHORIZATION, "Bearer " + normalToken))
-        .andExpect(status().isOk());
+        .andExpect(status().isForbidden());
   }
 
 }

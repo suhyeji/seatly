@@ -75,7 +75,7 @@ public class StudyCafeService {
 
     if (user.getRole() != UserRole.ADMIN) {
       // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
-      throw new IllegalArgumentException("해당 유저는 관리자 계정이 아닙니다.");
+      throw new AccessDeniedException("관리자 권한이 필요합니다.");
     }
 
     StudyCafe result = storeService.save(body.insert());
@@ -87,7 +87,7 @@ public class StudyCafeService {
 
     if (user.getRole() != UserRole.ADMIN) {
       // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
-      throw new IllegalArgumentException("해당 유저는 관리자 계정이 아닙니다.");
+      throw new AccessDeniedException("관리자 권한이 필요합니다.");
     }
 
     StudyCafe entity = storeService.findByIdOrNull(studyCafeId);
@@ -99,7 +99,7 @@ public class StudyCafeService {
 
     if (user.getRole() != UserRole.ADMIN) {
       // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
-      throw new IllegalArgumentException("해당 유저는 관리자 계정이 아닙니다.");
+      throw new AccessDeniedException("관리자 권한이 필요합니다.");
     }
 
     storeService.deleteById(id);
@@ -130,7 +130,7 @@ public class StudyCafeService {
 
     if (user.getRole() != UserRole.ADMIN) {
       // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
-      throw new IllegalArgumentException("해당 유저는 관리자 계정이 아닙니다.");
+      throw new AccessDeniedException("관리자 권한이 필요합니다.");
     }
 
     UserTimePassId timePassId = new UserTimePassId(id, userId);
