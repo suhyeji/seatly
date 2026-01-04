@@ -2,6 +2,7 @@ package com.seatly.seatly.service;
 
 import java.util.List;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import com.seatly.seatly.domain.Seat;
@@ -34,7 +35,7 @@ public class SeatService {
 
     if (user.getRole() != UserRole.ADMIN) {
       // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
-      throw new IllegalArgumentException("해당 유저는 관리자 계정이 아닙니다.");
+      throw new AccessDeniedException("관리자 권한이 필요합니다.");
     }
 
     return storeService.findAllByStudyCafeId(studyCafeId).stream()
@@ -47,7 +48,7 @@ public class SeatService {
 
     if (user.getRole() != UserRole.ADMIN) {
       // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
-      throw new IllegalArgumentException("해당 유저는 관리자 계정이 아닙니다.");
+      throw new AccessDeniedException("관리자 권한이 필요합니다.");
     }
 
     StudyCafe studyCafe = studyCafeStoreService.findByIdOrNull(studyCafeId);
@@ -64,7 +65,7 @@ public class SeatService {
 
     if (user.getRole() != UserRole.ADMIN) {
       // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
-      throw new IllegalArgumentException("해당 유저는 관리자 계정이 아닙니다.");
+      throw new AccessDeniedException("관리자 권한이 필요합니다.");
     }
 
     body.stream().forEach(seatPatch -> {
@@ -80,7 +81,7 @@ public class SeatService {
 
     if (user.getRole() != UserRole.ADMIN) {
       // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
-      throw new IllegalArgumentException("해당 유저는 관리자 계정이 아닙니다.");
+      throw new AccessDeniedException("관리자 권한이 필요합니다.");
     }
 
     storeService.deleteById(id);

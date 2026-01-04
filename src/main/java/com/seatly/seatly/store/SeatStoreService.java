@@ -45,8 +45,8 @@ public class SeatStoreService {
     return store.countByStudyCafeId(studyCafeId);
   }
 
-  public void save(Seat seat) {
-    store.save(seat);
+  public Seat save(Seat seat) {
+    return store.save(seat);
   }
 
   public void deleteById(Long id) {
