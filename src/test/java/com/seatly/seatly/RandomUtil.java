@@ -137,14 +137,6 @@ public class RandomUtil {
     return cafe;
   }
 
-  private static String randomAddress() {
-    return switch (RANDOM.nextInt(3)) {
-      case 0 -> "서울";
-      case 1 -> "부산";
-      default -> "대구";
-    };
-  }
-
   private static String randomImageUrl() {
     return "https://test.image/" + UUID.randomUUID() + ".png";
   }
