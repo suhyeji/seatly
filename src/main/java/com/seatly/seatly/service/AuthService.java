@@ -2,9 +2,8 @@ package com.seatly.seatly.service;
 
 import org.springframework.stereotype.Service;
 
+import com.seatly.seatly.auth.CustomUserDetails;
 import com.seatly.seatly.dto.login.LoginRequest;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 public class AuthService {
@@ -13,7 +12,7 @@ public class AuthService {
     //
   }
 
-  public void logout(HttpServletRequest request) {
+  public void logout(CustomUserDetails user) {
     // TODO: 쿠키삭제
   }
 

@@ -46,15 +46,15 @@ public class SessionController {
   }
 
   @PostMapping("/assign")
-  public void assignSession(@AuthenticationPrincipal CustomUserDetails user,
+  public SessionInfo assignSession(@AuthenticationPrincipal CustomUserDetails user,
       @RequestParam Long seatId) {
-    service.assignSeat(user.getId(), seatId);
+    return service.assignSeat(user.getId(), seatId);
   }
 
   @PostMapping("/auto-assign")
-  public void autossignSession(@AuthenticationPrincipal CustomUserDetails user,
+  public SessionInfo autossignSession(@AuthenticationPrincipal CustomUserDetails user,
       @RequestParam Long studyCafeId) {
-    service.autoAssignSeat(user.getId(), studyCafeId);
+    return service.autoAssignSeat(user.getId(), studyCafeId);
   }
 
 }
