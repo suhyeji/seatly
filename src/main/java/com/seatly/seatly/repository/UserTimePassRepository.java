@@ -33,4 +33,7 @@ public interface UserTimePassRepository extends JpaRepository<UserTimePass, User
     List<UserTimePassInfo> findTimePassInfosByStudyCafeId(
             @Param("studyCafeId") Long studyCafeId);
 
+    void deleteByUserIdAndStudyCafeId(@Param("userId") Long userId,
+            @Param("studyCafeId") Long studyCafeId);
+
 }

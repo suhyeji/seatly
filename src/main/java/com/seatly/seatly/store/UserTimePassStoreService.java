@@ -44,4 +44,8 @@ public class UserTimePassStoreService {
     store.deleteById(id);
   }
 
+  public void deleteByUserIdAndStudyCafeId(Long userId, Long studyCafeId) {
+    store.deleteByUserIdAndStudyCafeId(userId, studyCafeId);
+  }
+
 }

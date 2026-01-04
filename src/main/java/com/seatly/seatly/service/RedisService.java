@@ -40,6 +40,11 @@ public class RedisService {
         redisTemplate.hasKey(USER_SESSION_KEY + userId));
   }
 
+  public boolean hasSessionBySeatId(Long seatId) {
+    return Boolean.TRUE.equals(
+        redisTemplate.hasKey(SEAT_SESSION_KEY + seatId));
+  }
+
   // 좌석 점유는 2분
   public void setSession(Long sessionId, Long userId, Long seatId) {
     String sid = sessionId.toString();
@@ -73,13 +78,19 @@ public class RedisService {
   }
 
   public Long getSessionIdBySeatId(Long seatId) {
-    return Long.parseLong(redisTemplate.opsForValue()
-        .get(SEAT_SESSION_KEY + seatId));
+    String result = redisTemplate.opsForValue().get(SEAT_SESSION_KEY + seatId);
+    if (result != null) {
+      return Long.parseLong(result);
+    }
+    return null;
   }
 
   public Long getSessionIdByUserId(Long userId) {
-    return Long.parseLong(redisTemplate.opsForValue()
-        .get(USER_SESSION_KEY + userId));
+    String result = redisTemplate.opsForValue().get(USER_SESSION_KEY + userId);
+    if (result != null) {
+      return Long.parseLong(result);
+    }
+    return null;
   }
 
   public Long getSeatIdBySessionId(Long sessionId) {

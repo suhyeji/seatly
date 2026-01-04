@@ -11,14 +11,17 @@ import com.seatly.seatly.domain.Seat;
 import com.seatly.seatly.domain.Session;
 import com.seatly.seatly.domain.User;
 import com.seatly.seatly.domain.enums.SeatEventType;
+import com.seatly.seatly.domain.enums.SeatStatus;
 import com.seatly.seatly.domain.enums.SessionStatus;
 import com.seatly.seatly.dto.seat.SeatEvent;
 import com.seatly.seatly.dto.session.SessionInfo;
 import com.seatly.seatly.global.Util;
+import com.seatly.seatly.global.exception.ForbiddenException;
 import com.seatly.seatly.global.exception.NotFoundException;
 import com.seatly.seatly.store.SeatStoreService;
 import com.seatly.seatly.store.SessionStoreService;
 import com.seatly.seatly.store.UserStoreService;
+import com.seatly.seatly.store.UserTimePassStoreService;
 import com.seatly.seatly.websocket.SeatWebSocketPublisher;
 
 import lombok.RequiredArgsConstructor;
@@ -31,6 +34,7 @@ public class SessionService {
   private final SessionStoreService storeService;
   private final UserStoreService userStoreService;
   private final SeatStoreService seatStoreService;
+  private final UserTimePassStoreService userTimePassStoreService;
 
   private final SeatWebSocketPublisher seatWebSocketPublisher;
 
@@ -41,7 +45,7 @@ public class SessionService {
   @Transactional
   public SessionInfo startSession(Long userId, Long id) {
     if (!id.equals(redisService.getSessionIdByUserId(userId))) {
-      throw new IllegalArgumentException("사용자 정보와 세션 아이디가 일치하지 않습니다.");
+      throw new ForbiddenException("사용자 정보와 세션 아이디가 일치하지 않습니다.");
     }
     Session session = storeService.findByIdOrThrow(id);
     session.setStatus(SessionStatus.IN_USE);
@@ -52,7 +56,7 @@ public class SessionService {
 
   public void endSession(Long userId, boolean isAdmin, Long id) {
     if (!isAdmin && !id.equals(redisService.getSessionIdByUserId(userId))) {
-      throw new IllegalArgumentException("사용자 정보와 세션 아이디가 일치하지 않습니다.");
+      throw new ForbiddenException("사용자 정보와 세션 아이디가 일치하지 않습니다.");
     }
     storeService.findById(id).ifPresent(session -> {
       redisService.deleteSession(session.getId());
@@ -70,14 +74,17 @@ public class SessionService {
 
   @Transactional
   public SessionInfo assignSeat(Long userId, Long seatId) {
-    if (!redisService.tryLockSeat(seatId)) {
+    Seat seat = seatStoreService.findByIdOrThrow(seatId);
+    if (SeatStatus.UNAVAILABLE.equals(seat.getStatus())) {
+      throw new IllegalStateException("사용 불가능한 좌석입니다.");
+    }
+
+    if (!redisService.tryLockSeat(seatId) || redisService.hasSessionBySeatId(seatId)) {
       throw new IllegalStateException("이미 사용 중인 좌석입니다.");
     }
 
     try {
-      User user = userStoreService.findByIdOrThrow(seatId);
-      Seat seat = seatStoreService.findByIdOrThrow(seatId);
-
+      User user = userStoreService.findByIdOrThrow(userId);
       Session session = createAssignedSession(user, seat);
       session = storeService.save(session);
       redisService.setSession(session.getId(), userId, seatId);
@@ -133,6 +140,7 @@ public class SessionService {
     Long userId = session.getUser().getId();
 
     storeService.delete(session);
+    userTimePassStoreService.deleteByUserIdAndStudyCafeId(userId, studyCafeId);
     redisService.deleteSession(session.getId());
 
     seatWebSocketPublisher.publishToStudyCafe(
