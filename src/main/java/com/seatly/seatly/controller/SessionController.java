@@ -2,7 +2,6 @@ package com.seatly.seatly.controller;
 
 import java.util.List;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +10,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.seatly.seatly.auth.CustomUserDetails;
@@ -39,22 +37,21 @@ public class SessionController {
   }
 
   @DeleteMapping("/{id}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
   public void endSession(@AuthenticationPrincipal CustomUserDetails user,
       @PathVariable Long id) {
     service.endSession(user.getId(), user.isAdmin(), id);
   }
 
   @PostMapping("/assign")
-  public void assignSession(@AuthenticationPrincipal CustomUserDetails user,
+  public SessionInfo assignSession(@AuthenticationPrincipal CustomUserDetails user,
       @RequestParam Long seatId) {
-    service.assignSeat(user.getId(), seatId);
+    return service.assignSeat(user.getId(), seatId);
   }
 
   @PostMapping("/auto-assign")
-  public void autossignSession(@AuthenticationPrincipal CustomUserDetails user,
+  public SessionInfo autoAssignSession(@AuthenticationPrincipal CustomUserDetails user,
       @RequestParam Long studyCafeId) {
-    service.autoAssignSeat(user.getId(), studyCafeId);
+    return service.autoAssignSeat(user.getId(), studyCafeId);
   }
 
 }

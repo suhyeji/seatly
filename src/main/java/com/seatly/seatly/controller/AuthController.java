@@ -1,14 +1,15 @@
 package com.seatly.seatly.controller;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.seatly.seatly.auth.CustomUserDetails;
 import com.seatly.seatly.dto.login.LoginRequest;
 import com.seatly.seatly.service.AuthService;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -24,7 +25,7 @@ public class AuthController {
   }
 
   @PostMapping("/logout")
-  public void logout(HttpServletRequest request) {
-    authService.logout(request);
+  public void logout(@AuthenticationPrincipal CustomUserDetails user) {
+    authService.logout(user);
   }
 }

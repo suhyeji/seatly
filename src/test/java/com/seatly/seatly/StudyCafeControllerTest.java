@@ -139,7 +139,7 @@ class StudyCafeControllerTest {
     assertThat(response.getName()).isEqualTo(cafe.getName());
     assertThat(response.getAddress()).isEqualTo(cafe.getAddress());
     assertThat(response.getImageUrls()).isEqualTo(cafe.getImageUrls());
-    assertThat(response.getPhoneNumber()).isEqualTo(cafe.getPhoneNumber());
+    assertThat(response.getPhone()).isEqualTo(cafe.getPhoneNumber());
     assertThat(response.getFacilities()).isEqualTo(cafe.getFacilities());
     assertThat(response.getOpeningHours()).isEqualTo(cafe.getOpeningHours());
     assertThat(response.getDescription()).isEqualTo(cafe.getDescription());
@@ -251,13 +251,13 @@ class StudyCafeControllerTest {
         result.getResponse().getContentAsString(StandardCharsets.UTF_8),
         StudyCafeDetail.class);
 
-    assertThat(response.getName()).isEqualTo(saved.getName());
-    assertThat(response.getAddress()).isEqualTo(saved.getAddress());
-    assertThat(response.getImageUrls()).isEqualTo(saved.getImageUrls());
-    assertThat(response.getPhoneNumber()).isEqualTo(saved.getPhoneNumber());
-    assertThat(response.getFacilities()).isEqualTo(saved.getFacilities());
-    assertThat(response.getOpeningHours()).isEqualTo(saved.getOpeningHours());
-    assertThat(response.getDescription()).isEqualTo(saved.getDescription());
+    assertThat(response.getName()).isEqualTo(post.getName());
+    assertThat(response.getAddress()).isEqualTo(post.getAddress());
+    assertThat(response.getImageUrls()).isEqualTo(post.getImageUrls());
+    assertThat(response.getPhone()).isEqualTo(post.getPhoneNumber());
+    assertThat(response.getFacilities()).isEqualTo(post.getFacilities());
+    assertThat(response.getOpeningHours()).isEqualTo(post.getOpeningHours());
+    assertThat(response.getDescription()).isEqualTo(post.getDescription());
   }
 
   // ===========================
@@ -359,7 +359,7 @@ class StudyCafeControllerTest {
     userTimePassStoreService.save(otherTimePass);
 
     // sanity check
-    List<TimePass> before = userTimePassStoreService.getTimePassesByUserId(user.getId());
+    List<TimePass> before = userTimePassStoreService.findAllByUserId(user.getId());
 
     assertThat(before).hasSize(2);
     assertThat(before.get(0).getUserId()).isEqualTo(user.getId());
@@ -374,7 +374,7 @@ class StudyCafeControllerTest {
         .andExpect(status().isOk());
 
     // then: DB에서 실제 삭제되었는지 검증
-    List<TimePass> after = userTimePassStoreService.getTimePassesByUserId(user.getId());
+    List<TimePass> after = userTimePassStoreService.findAllByUserId(user.getId());
     assertThat(after).hasSize(1);
     assertThat(after.get(0).getUserId()).isEqualTo(user.getId());
     assertThat(after.get(0).getStudyCafeId()).isEqualTo(otherCafe.getId());

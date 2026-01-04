@@ -23,6 +23,10 @@ public class StudyCafeStoreService {
     return store.findById(id).orElse(null);
   }
 
+  public StudyCafe findByIdOrThrow(Long id) {
+    return store.findById(id).orElseThrow();
+  }
+
   public StudyCafe save(StudyCafe studyCafe) {
     return store.save(studyCafe);
   }

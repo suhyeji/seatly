@@ -18,7 +18,7 @@ public class StudyCafeDetail {
   private String name;
   private String address;
   private List<String> imageUrls;
-  private String phoneNumber;
+  private String phone;
   private List<Facility> facilities;
   private String openingHours;
   private String description;
@@ -28,7 +28,7 @@ public class StudyCafeDetail {
     this.name = entity.getName();
     this.address = entity.getAddress();
     this.imageUrls = entity.getImageUrls();
-    this.phoneNumber = entity.getPhoneNumber();
+    this.phone = entity.getPhoneNumber();
     this.facilities = entity.getFacilities();
     this.openingHours = entity.getOpeningHours();
     this.description = entity.getDescription();
