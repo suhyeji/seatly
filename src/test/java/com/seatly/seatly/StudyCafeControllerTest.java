@@ -185,7 +185,7 @@ class StudyCafeControllerTest {
     assertThat(response.getName()).isEqualTo(cafe.getName());
     assertThat(response.getAddress()).isEqualTo(cafe.getAddress());
     assertThat(response.getImageUrls()).isEqualTo(cafe.getImageUrls());
-    assertThat(response.getPhoneNumber()).isEqualTo(cafe.getPhoneNumber());
+    assertThat(response.getPhone()).isEqualTo(cafe.getPhoneNumber());
     assertThat(response.getFacilities()).isEqualTo(cafe.getFacilities());
     assertThat(response.getOpeningHours()).isEqualTo(cafe.getOpeningHours());
     assertThat(response.getDescription()).isEqualTo(cafe.getDescription());
@@ -328,7 +328,7 @@ class StudyCafeControllerTest {
     assertThat(response.getName()).isEqualTo(post.getName());
     assertThat(response.getAddress()).isEqualTo(post.getAddress());
     assertThat(response.getImageUrls()).isEqualTo(post.getImages());
-    assertThat(response.getPhoneNumber()).isEqualTo(post.getPhoneNumber());
+    assertThat(response.getPhone()).isEqualTo(post.getPhoneNumber());
     assertThat(response.getFacilities()).isEqualTo(post.getFacilities());
     assertThat(response.getOpeningHours()).isEqualTo(post.getOpeningHours());
     assertThat(response.getDescription()).isEqualTo(post.getDescription());

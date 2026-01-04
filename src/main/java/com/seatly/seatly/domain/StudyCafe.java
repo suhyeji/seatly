@@ -1,6 +1,7 @@
 package com.seatly.seatly.domain;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.annotations.JdbcTypeCode;
@@ -39,7 +40,7 @@ public class StudyCafe {
   @Type(JsonType.class)
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(columnDefinition = "jsonb")
-  private List<String> imageUrls;
+  private List<String> imageUrls = new ArrayList<>();
 
   @Column(length = 20)
   private String phoneNumber;
@@ -47,7 +48,7 @@ public class StudyCafe {
   @Type(JsonType.class)
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(columnDefinition = "jsonb")
-  private List<Facility> facilities;
+  private List<Facility> facilities = new ArrayList<>();
 
   @Column(length = 100)
   private String openingHours;

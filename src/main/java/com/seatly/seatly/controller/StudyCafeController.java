@@ -52,10 +52,10 @@ public class StudyCafeController {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  public void addStudyCafe(
+  public Long addStudyCafe(
       @AuthenticationPrincipal CustomUserDetails user,
       @RequestBody StudyCafeDetailPost body) {
-    studyCafeService.addStudyCafe(user.getId(), body);
+    return studyCafeService.addStudyCafe(user.getId(), body);
   }
 
   @PatchMapping("/{id}")

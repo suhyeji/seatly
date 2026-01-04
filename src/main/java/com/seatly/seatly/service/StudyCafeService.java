@@ -70,7 +70,7 @@ public class StudyCafeService {
         sessionStoreService.getSessionCountByStudyCafeId(studyCafeId));
   }
 
-  public void addStudyCafe(Long userId, StudyCafeDetailPost body) {
+  public Long addStudyCafe(Long userId, StudyCafeDetailPost body) {
     User user = userStoreService.findByIdOrNull(userId);
 
     if (user.getRole() != UserRole.ADMIN) {
@@ -78,7 +78,8 @@ public class StudyCafeService {
       throw new IllegalArgumentException("해당 유저는 관리자 계정이 아닙니다.");
     }
 
-    storeService.save(body.insert());
+    StudyCafe result = storeService.save(body.insert());
+    return result.getId();
   }
 
   public void updateStudyCafe(Long userId, Long studyCafeId, StudyCafeDetailPost body) {
@@ -133,6 +134,6 @@ public class StudyCafeService {
     }
 
     UserTimePassId timePassId = new UserTimePassId(id, userId);
-    userTimePassStoreService.deleteByTimePassId(timePassId);
+    userTimePassStoreService.deleteById(timePassId);
   }
 }
