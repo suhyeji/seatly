@@ -87,7 +87,7 @@ public class SessionService {
       User user = userStoreService.findByIdOrThrow(userId);
       Session session = createAssignedSession(user, seat);
       session = storeService.save(session);
-      redisService.setSession(session.getId(), userId, seatId);
+      redisService.setSession(session.getId(), userId, seatId, session.getStatus());
       return new SessionInfo(session);
     } finally {
       redisService.unlockSeat(seatId);
@@ -112,7 +112,7 @@ public class SessionService {
       try {
         Session session = createAssignedSession(user, seat);
         session = storeService.save(session);
-        redisService.setSession(session.getId(), userId, seatId);
+        redisService.setSession(session.getId(), userId, seatId, session.getStatus());
         return new SessionInfo(session);
       } catch (Exception e) {
         redisService.unlockSeat(seatId);

@@ -6,6 +6,8 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import com.seatly.seatly.domain.enums.SessionStatus;
+
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -21,9 +23,11 @@ public class RedisService {
   private static final String SEAT_SESSION_KEY = "seat:session:";
   private static final String USER_SESSION_KEY = "user:session:";
   private static final String SESSION_KEY = "session:";
+  private static final String SESSION_KEY_META = "session:meta:";
   private static final String LOCK = "LOCK";
   private static final String SEAT_ID = "seatId";
   private static final String USER_ID = "userId";
+  private static final String STATUS = "status";
 
   public boolean tryLockSeat(Long seatId) {
     Boolean result = redisTemplate.opsForValue()
@@ -46,7 +50,7 @@ public class RedisService {
   }
 
   // 좌석 점유는 2분
-  public void setSession(Long sessionId, Long userId, Long seatId) {
+  public void setSession(Long sessionId, Long userId, Long seatId, SessionStatus status) {
     String sid = sessionId.toString();
     redisTemplate.opsForValue().set(SEAT_SESSION_KEY + seatId, sid, assignDuration);
     redisTemplate.opsForValue().set(USER_SESSION_KEY + userId, sid, assignDuration);
@@ -54,7 +58,14 @@ public class RedisService {
     String sessionKey = SESSION_KEY + sid;
     redisTemplate.opsForHash().put(sessionKey, SEAT_ID, seatId);
     redisTemplate.opsForHash().put(sessionKey, USER_ID, userId);
+
+    // meta redis: assignDuration + 10분 -> sessionKey expire 됐을 때 삭제
+    String sessionMetaKey = SESSION_KEY_META + sid;
+    redisTemplate.opsForHash().put(sessionMetaKey, SEAT_ID, seatId);
+    redisTemplate.opsForHash().put(sessionMetaKey, STATUS, status);
+
     redisTemplate.expire(sessionKey, assignDuration);
+    redisTemplate.expire(sessionMetaKey, assignDuration.plus(Duration.ofMinutes(10)));
   }
 
   public void extendSessionTimeByUserId(Long userId, Long seconds) {
@@ -98,6 +109,20 @@ public class RedisService {
         .get(SESSION_KEY + sessionId, SEAT_ID);
   }
 
+  public Long getMetaSeatIdBySessionId(Long sessionId) {
+    return (Long) redisTemplate.opsForHash()
+        .get(SESSION_KEY_META + sessionId, SEAT_ID);
+  }
+
+  public SessionStatus getSessionMetaStatusBySessionId(Long sessionId) {
+    return (SessionStatus) redisTemplate.opsForHash()
+        .get(SESSION_KEY_META + sessionId, STATUS);
+  }
+
+  public void deleteSessionMeta(Long sessionId) {
+    redisTemplate.delete(SESSION_KEY_META + sessionId);
+  }
+
   public void deleteSession(Long sessionId) {
     String key = SESSION_KEY + sessionId;
     Object seatId = redisTemplate.opsForHash().get(key, SEAT_ID);
@@ -110,6 +135,9 @@ public class RedisService {
       redisTemplate.delete(USER_SESSION_KEY + userId);
     }
     redisTemplate.delete(key);
+
+    // session meta 삭제
+    deleteSessionMeta(sessionId);
   }
 
 }
