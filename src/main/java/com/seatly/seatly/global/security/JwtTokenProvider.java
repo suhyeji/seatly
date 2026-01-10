@@ -46,6 +46,23 @@ public class JwtTokenProvider {
         .compact();
   }
 
+  public String createRefreshToken(Long id) {
+    Date now = new Date();
+    Date expiry = new Date(
+        now.getTime() + getRefreshTokenExpireMs());
+
+    return Jwts.builder()
+        .setSubject(id.toString())
+        .setIssuedAt(now)
+        .setExpiration(expiry)
+        .signWith(key, SignatureAlgorithm.HS256)
+        .compact();
+  }
+
+  public long getRefreshTokenExpireMs() {
+    return jwtProperties.getRefreshTokenExpireMs();
+  }
+
   /* ===================== 토큰 검증 ===================== */
 
   public boolean validateToken(String token) {

@@ -2,7 +2,9 @@ package com.seatly.seatly.service;
 
 import java.util.List;
 
+import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +15,7 @@ import com.seatly.seatly.domain.UserTimePass;
 import com.seatly.seatly.domain.enums.UserCafeLinkType;
 import com.seatly.seatly.domain.keys.UserTimePassId;
 import com.seatly.seatly.dto.TimePass;
+import com.seatly.seatly.dto.login.LoginRequest;
 import com.seatly.seatly.dto.session.SessionInfo;
 import com.seatly.seatly.dto.user.UserInfo;
 import com.seatly.seatly.dto.user.UserInfoDetail;
@@ -53,16 +56,23 @@ public class UserService {
     userStoreService.save(user);
   }
 
+  public Pair<Long, UserInfo> login(LoginRequest request) {
+    User user = userStoreService.findByEmailOrNull(request.getEmail());
+    if (user == null ||
+        !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+      throw new BadCredentialsException("아이디 또는 비밀번호가 일치하지 않습니다.");
+    }
+    UserInfo result = new UserInfo();
+    setDto(result, user);
+    return Pair.of(user.getId(), result);
+  }
+
   @Transactional
   public UserInfoDetail getUserInfoDetail(Long id) {
     UserInfoDetail result = new UserInfoDetail();
 
     User user = userStoreService.findByIdOrThrow(id);
-    result.setEmail(user.getEmail());
-    result.setName(user.getName());
-    result.setPhone(user.getPhone());
-    result.setImageUrl(user.getImageUrl());
-    result.setRole(user.getRole());
+    setDto(result, user);
 
     List<Long> favoriteCafeIds = userStudyCafeLinkStoreService.getStudyCafeIdsByUserIdAndLinkType(id,
         UserCafeLinkType.FAVORITE);
@@ -77,6 +87,14 @@ public class UserService {
     return result;
   }
 
+  private void setDto(UserInfo result, User user) {
+    result.setEmail(user.getEmail());
+    result.setName(user.getName());
+    result.setPhone(user.getPhone());
+    result.setImageUrl(user.getImageUrl());
+    result.setRole(user.getRole());
+  }
+
   public UserInfo getUserInfo(Long id) {
     UserInfo result = new UserInfo();
     User user = userStoreService.findByIdOrThrow(id);
@@ -84,6 +102,7 @@ public class UserService {
     result.setName(user.getName());
     result.setPhone(user.getPhone());
     result.setImageUrl(user.getImageUrl());
+    result.setRole(user.getRole());
     return result;
   }
 

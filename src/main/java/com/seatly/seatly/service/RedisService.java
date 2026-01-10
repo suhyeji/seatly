@@ -28,6 +28,7 @@ public class RedisService {
   private static final String SEAT_ID = "seatId";
   private static final String USER_ID = "userId";
   private static final String STATUS = "status";
+  private static final String REFRESH_TOKEN_KEY = "refreshToken:";
 
   public boolean tryLockSeat(Long seatId) {
     Boolean result = redisTemplate.opsForValue()
@@ -138,6 +139,21 @@ public class RedisService {
 
     // session meta 삭제
     deleteSessionMeta(sessionId);
+  }
+
+  public void saveRefreshToken(Long userId, String refreshToken, long expireMs) {
+    redisTemplate.opsForValue().set(
+        REFRESH_TOKEN_KEY + userId,
+        refreshToken,
+        Duration.ofMillis(expireMs));
+  }
+
+  public String getRefreshToken(Long userId) {
+    return redisTemplate.opsForValue().get(REFRESH_TOKEN_KEY + userId);
+  }
+
+  public void deleteRefreshToken(Long userId) {
+    redisTemplate.delete(REFRESH_TOKEN_KEY + userId);
   }
 
 }

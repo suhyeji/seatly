@@ -24,6 +24,7 @@ spring:
 jwt:
   secret: this-is-very-secret-key-change-it
   access-token-expire-ms: 3600000 # 1시간
+  refresh-token-expire-ms: 1209600000 # 14일
 
 file:
   upload-dir: ${user.home}/seatly/uploads

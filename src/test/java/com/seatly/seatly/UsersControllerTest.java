@@ -192,6 +192,7 @@ class UsersControllerTest {
     expected.setName(user1.getName());
     expected.setPhone(user1.getPhone());
     expected.setImageUrl(user1.getImageUrl());
+    expected.setRole(user1.getRole());
 
     assertEquals(expected, actual);
   }
