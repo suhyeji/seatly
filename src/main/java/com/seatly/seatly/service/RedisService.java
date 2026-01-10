@@ -50,23 +50,35 @@ public class RedisService {
         redisTemplate.hasKey(SEAT_SESSION_KEY + seatId));
   }
 
+  public void startSession(Long sessionId, Long userId, Long seatId, Duration expire) {
+    // 좌석 점유 상태였던 세션을 IN_USE로 변경 및 이용권 시간만큼 ttl 갱신
+    setSession(sessionId, userId, seatId, SessionStatus.IN_USE, expire);
+  }
+
   // 좌석 점유는 2분
-  public void setSession(Long sessionId, Long userId, Long seatId, SessionStatus status) {
+  public void setAssignSession(Long sessionId, Long userId, Long seatId) {
+    setSession(sessionId, userId, seatId, SessionStatus.ASSIGNED, assignDuration);
+  }
+
+  private void setSession(Long sessionId, Long userId, Long seatId, SessionStatus status, Duration expire) {
     String sid = sessionId.toString();
-    redisTemplate.opsForValue().set(SEAT_SESSION_KEY + seatId, sid, assignDuration);
-    redisTemplate.opsForValue().set(USER_SESSION_KEY + userId, sid, assignDuration);
-
     String sessionKey = SESSION_KEY + sid;
-    redisTemplate.opsForHash().put(sessionKey, SEAT_ID, seatId);
-    redisTemplate.opsForHash().put(sessionKey, USER_ID, userId);
 
-    // meta redis: assignDuration + 10분 -> sessionKey expire 됐을 때 삭제
+    if (status.equals(SessionStatus.ASSIGNED)) {
+      redisTemplate.opsForHash().put(sessionKey, SEAT_ID, seatId);
+      redisTemplate.opsForHash().put(sessionKey, USER_ID, userId);
+    }
+
+    redisTemplate.opsForValue().set(SEAT_SESSION_KEY + seatId, sid, expire);
+    redisTemplate.opsForValue().set(USER_SESSION_KEY + userId, sid, expire);
+
+    // meta redis: expire + 10분 -> sessionKey expire 됐을 때 삭제
     String sessionMetaKey = SESSION_KEY_META + sid;
     redisTemplate.opsForHash().put(sessionMetaKey, SEAT_ID, seatId);
     redisTemplate.opsForHash().put(sessionMetaKey, STATUS, status);
 
-    redisTemplate.expire(sessionKey, assignDuration);
-    redisTemplate.expire(sessionMetaKey, assignDuration.plus(Duration.ofMinutes(10)));
+    redisTemplate.expire(sessionKey, expire);
+    redisTemplate.expire(sessionMetaKey, expire.plus(Duration.ofMinutes(10)));
   }
 
   public void extendSessionTimeByUserId(Long userId, Long seconds) {
