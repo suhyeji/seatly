@@ -6,6 +6,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import com.seatly.seatly.websocket.RedisExpiredKeyListener;
@@ -20,6 +21,8 @@ public class RedisConfig {
 
     RedisTemplate<String, String> template = new RedisTemplate<>();
     template.setConnectionFactory(factory);
+    template.setKeySerializer(new StringRedisSerializer());
+
     return template;
   }
 
