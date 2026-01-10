@@ -1,7 +1,5 @@
 package com.seatly.seatly.websocket;
 
-import java.nio.charset.StandardCharsets;
-
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.stereotype.Component;
@@ -11,6 +9,7 @@ import com.seatly.seatly.domain.enums.SessionStatus;
 import com.seatly.seatly.dto.seat.SeatEvent;
 import com.seatly.seatly.service.RedisService;
 import com.seatly.seatly.service.SeatService;
+import com.seatly.seatly.service.SessionService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class RedisExpiredKeyListener implements MessageListener {
 
+  private final SessionService sessionService;
+
   private final SeatWebSocketPublisher publisher;
   private final SeatService seatService;
   private final RedisService redisService;
@@ -28,7 +29,7 @@ public class RedisExpiredKeyListener implements MessageListener {
 
   @Override
   public void onMessage(Message message, byte[] pattern) {
-    String key = new String(message.getBody(), StandardCharsets.UTF_8);
+    String key = message.toString();
     log.info("[REDIS-EXPIRED] key={}", key);
 
     // session: 시작하는 redis만 처리
@@ -59,5 +60,8 @@ public class RedisExpiredKeyListener implements MessageListener {
 
     // metadata 삭제
     redisService.deleteSessionMeta(sessionId);
+
+    // DB 삭제
+    sessionService.finishSession(sessionId);
   }
 }

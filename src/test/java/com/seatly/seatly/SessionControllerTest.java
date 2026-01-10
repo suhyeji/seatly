@@ -226,20 +226,19 @@ class SessionControllerTest {
         .andExpect(status().isOk());
   }
 
-  // @Test
+  @Test
+  void testSessionExpire() throws Exception {
+    SessionInfo sessionInfo = postAssignSeat(0);
+    postStartSession(sessionInfo.getId());
+    Thread.sleep(Duration.ofSeconds(expireTime + 10));
 
-  // void testSessionExpire() throws Exception {
-  // SessionInfo sessionInfo = postAssignSeat(0);
-  // postStartSession(sessionInfo.getId());
-  // Thread.sleep(Duration.ofSeconds(expireTime + 2));
+    List<SessionInfo> sessionInfos = getSessions();
+    assertEquals(0, sessionInfos.size());
 
-  // List<SessionInfo> sessionInfos = getSessions();
-  // assertEquals(0, sessionInfos.size());
+    List<TimePass> timePasses = userTimePassStoreService.findAllByUserId(userId1);
+    assertEquals(0, timePasses.size());
+  }
 
-  // List<TimePass> timePasses =
-  // userTimePassStoreService.findAllByUserId(userId1);
-  // assertEquals(0, timePasses.size());
-  // }
   private SessionInfo postAssignSeat(Integer seatIdx) throws Exception {
     ResultActions assignResult = mockMvc.perform(
         post("/api/sessions/assign")

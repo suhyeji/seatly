@@ -1,5 +1,6 @@
 package com.seatly.seatly.service;
 
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -10,9 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.seatly.seatly.domain.Seat;
 import com.seatly.seatly.domain.Session;
 import com.seatly.seatly.domain.User;
+import com.seatly.seatly.domain.UserTimePass;
 import com.seatly.seatly.domain.enums.SeatEventType;
 import com.seatly.seatly.domain.enums.SeatStatus;
 import com.seatly.seatly.domain.enums.SessionStatus;
+import com.seatly.seatly.domain.keys.UserTimePassId;
 import com.seatly.seatly.dto.seat.SeatEvent;
 import com.seatly.seatly.dto.session.SessionInfo;
 import com.seatly.seatly.global.Util;
@@ -51,6 +54,14 @@ public class SessionService {
     session.setStatus(SessionStatus.IN_USE);
     session.setStartTime(Util.now());
     session = storeService.save(session);
+    // redis에서 값 변경
+    Long studyCafeId = session.getSeat().getStudyCafe().getId();
+    UserTimePass timePass = userTimePassStoreService.findById(new UserTimePassId(studyCafeId, userId));
+
+    // long remainMinutes = timePass.getLeftTime() / (60 * 1000);
+    Duration expire = Duration.ofSeconds(timePass.getLeftTime());
+
+    redisService.startSession(id, userId, session.getSeat().getId(), expire);
     return new SessionInfo(session);
   }
 
@@ -87,7 +98,7 @@ public class SessionService {
       User user = userStoreService.findByIdOrThrow(userId);
       Session session = createAssignedSession(user, seat);
       session = storeService.save(session);
-      redisService.setSession(session.getId(), userId, seatId, session.getStatus());
+      redisService.setAssignSession(session.getId(), userId, seatId);
       return new SessionInfo(session);
     } finally {
       redisService.unlockSeat(seatId);
@@ -112,7 +123,7 @@ public class SessionService {
       try {
         Session session = createAssignedSession(user, seat);
         session = storeService.save(session);
-        redisService.setSession(session.getId(), userId, seatId, session.getStatus());
+        redisService.setAssignSession(session.getId(), userId, seatId);
         return new SessionInfo(session);
       } catch (Exception e) {
         redisService.unlockSeat(seatId);
@@ -133,7 +144,8 @@ public class SessionService {
   }
 
   @Transactional
-  public void finishSession(Session session) {
+  public void finishSession(Long sessionId) {
+    Session session = storeService.findByIdOrThrow(sessionId);
     // session 종료
     Long studyCafeId = session.getSeat().getStudyCafe().getId();
     Long seatId = session.getSeat().getId();
