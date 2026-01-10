@@ -3,13 +3,10 @@ package com.seatly.seatly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -23,12 +20,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.seatly.seatly.domain.User;
 import com.seatly.seatly.domain.enums.UserRole;
-import com.seatly.seatly.dto.user.UserInfoDetail;
 import com.seatly.seatly.dto.user.UserPasswordPut;
 import com.seatly.seatly.dto.user.UserPatch;
 import com.seatly.seatly.dto.user.UserPost;
@@ -110,30 +105,6 @@ class UserControllerTest {
   }
 
   @Test
-  @Order(1)
-  void testGetUserInfoDetail() throws Exception {
-    MvcResult result = mockMvc.perform(
-        get("/api/user")
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-        .andExpect(status().isOk())
-        .andReturn();
-
-    UserInfoDetail response = mapper.readValue(
-        result.getResponse().getContentAsString(StandardCharsets.UTF_8),
-        UserInfoDetail.class);
-
-    assertNotNull(response);
-    assertEquals(email, response.getEmail());
-    assertEquals(username, response.getName());
-    assertEquals(phone, response.getPhone());
-    assertNotNull(response.getPhone());
-    assertNotNull(response.getFavoriteCafeIds());
-    assertNotNull(response.getSessions());
-    assertNotNull(response.getTimePasses());
-    assertEquals(UserRole.USER, response.getRole());
-  }
-
-  @Test
   @Order(2)
   void testUpdateUserInfo() throws Exception {
     UserPatch userPatch = new UserPatch();
@@ -148,8 +119,6 @@ class UserControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(mapper.writeValueAsString(userPatch)))
         .andExpect(status().isOk());
-
-    testGetUserInfoDetail();
   }
 
   @Test

@@ -1,5 +1,7 @@
 package com.seatly.seatly.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,7 +15,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.seatly.seatly.auth.CustomUserDetails;
-import com.seatly.seatly.dto.user.UserInfoDetail;
+import com.seatly.seatly.dto.TimePass;
 import com.seatly.seatly.dto.user.UserPasswordPut;
 import com.seatly.seatly.dto.user.UserPatch;
 import com.seatly.seatly.dto.user.UserPost;
@@ -34,11 +36,6 @@ public class UserController {
     userService.signUp(userPost);
   }
 
-  @GetMapping
-  public UserInfoDetail getUserInfoDetail(@AuthenticationPrincipal CustomUserDetails user) {
-    return userService.getUserInfoDetail(user.getId());
-  }
-
   @PatchMapping
   public void updateUserInfo(@AuthenticationPrincipal CustomUserDetails user,
       @RequestBody UserPatch userPatch) {
@@ -55,6 +52,16 @@ public class UserController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteUser(@AuthenticationPrincipal CustomUserDetails user) {
     userService.deleteUser(user.getId());
+  }
+
+  @GetMapping("/study-cafes/favorite")
+  public List<Long> getFavoriteStudyCafeIds(@AuthenticationPrincipal CustomUserDetails user) {
+    return userService.getFavoriteStudyCafeIds(user.getId());
+  }
+
+  @GetMapping("/time-passes")
+  public List<TimePass> getTimePasses(@AuthenticationPrincipal CustomUserDetails user) {
+    return userService.getTimePasses(user.getId());
   }
 
 }

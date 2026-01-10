@@ -18,7 +18,6 @@ import com.seatly.seatly.dto.TimePass;
 import com.seatly.seatly.dto.login.LoginRequest;
 import com.seatly.seatly.dto.session.SessionInfo;
 import com.seatly.seatly.dto.user.UserInfo;
-import com.seatly.seatly.dto.user.UserInfoDetail;
 import com.seatly.seatly.dto.user.UserPasswordPut;
 import com.seatly.seatly.dto.user.UserPatch;
 import com.seatly.seatly.dto.user.UserPost;
@@ -67,24 +66,17 @@ public class UserService {
     return Pair.of(user.getId(), result);
   }
 
-  @Transactional
-  public UserInfoDetail getUserInfoDetail(Long id) {
-    UserInfoDetail result = new UserInfoDetail();
+  public List<SessionInfo> getSessions(Long id) {
+    return sessionStoreService.findSessionInfosByUserId(id);
+  }
 
-    User user = userStoreService.findByIdOrThrow(id);
-    setDto(result, user);
-
-    List<Long> favoriteCafeIds = userStudyCafeLinkStoreService.getStudyCafeIdsByUserIdAndLinkType(id,
+  public List<Long> getFavoriteStudyCafeIds(Long id) {
+    return userStudyCafeLinkStoreService.getStudyCafeIdsByUserIdAndLinkType(id,
         UserCafeLinkType.FAVORITE);
-    result.setFavoriteCafeIds(favoriteCafeIds);
+  }
 
-    List<SessionInfo> sessions = sessionStoreService.findSessionInfosByUserId(id);
-    result.setSessions(sessions);
-
-    List<TimePass> timePasses = userTimePassStoreService.findAllByUserId(id);
-    result.setTimePasses(timePasses);
-
-    return result;
+  public List<TimePass> getTimePasses(Long id) {
+    return userTimePassStoreService.findAllByUserId(id);
   }
 
   private void setDto(UserInfo result, User user) {
