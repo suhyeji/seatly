@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.seatly.seatly.auth.CustomUserDetails;
 import com.seatly.seatly.dto.TimePass;
+import com.seatly.seatly.dto.user.UserInfo;
 import com.seatly.seatly.dto.user.UserPasswordPut;
 import com.seatly.seatly.dto.user.UserPatch;
 import com.seatly.seatly.dto.user.UserPost;
@@ -34,6 +35,11 @@ public class UserController {
   @ResponseStatus(HttpStatus.CREATED)
   public void signUp(@RequestBody UserPost userPost) {
     userService.signUp(userPost);
+  }
+
+  @GetMapping
+  public UserInfo getUserInfo(@AuthenticationPrincipal CustomUserDetails user) {
+    return userService.getUserInfo(user.getId());
   }
 
   @PatchMapping
