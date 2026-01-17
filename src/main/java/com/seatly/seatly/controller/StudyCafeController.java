@@ -19,6 +19,7 @@ import com.seatly.seatly.dto.studycafe.StudyCafeDetail;
 import com.seatly.seatly.dto.studycafe.StudyCafeDetailPost;
 import com.seatly.seatly.dto.studycafe.StudyCafeSummary;
 import com.seatly.seatly.dto.studycafe.StudyCafeUsage;
+import com.seatly.seatly.global.exception.UnauthorizedException;
 import com.seatly.seatly.service.StudyCafeService;
 
 import lombok.RequiredArgsConstructor;
@@ -41,7 +42,9 @@ public class StudyCafeController {
   }
 
   @GetMapping("/admin")
-  public List<StudyCafeSummary> getAdminStudyCafeSummaries(@AuthenticationPrincipal CustomUserDetails user) {
+  public List<StudyCafeSummary> getAdminStudyCafeSummaries(
+      @AuthenticationPrincipal CustomUserDetails user) {
+    validateUser(user);
     return studyCafeService.getAdminStudyCafeSummaries(user.getId());
   }
 
@@ -55,6 +58,7 @@ public class StudyCafeController {
   public Long addStudyCafe(
       @AuthenticationPrincipal CustomUserDetails user,
       @RequestBody StudyCafeDetailPost body) {
+    validateUser(user);
     return studyCafeService.addStudyCafe(user.getId(), body);
   }
 
@@ -63,6 +67,7 @@ public class StudyCafeController {
       @AuthenticationPrincipal CustomUserDetails user,
       @PathVariable Long id,
       @RequestBody StudyCafeDetailPost body) {
+    validateUser(user);
     studyCafeService.updateStudyCafe(user.getId(), id, body);
   }
 
@@ -71,6 +76,7 @@ public class StudyCafeController {
   public void deleteStudyCafe(
       @AuthenticationPrincipal CustomUserDetails user,
       @PathVariable Long id) {
+    validateUser(user);
     studyCafeService.deleteStudyCafe(user.getId(), id);
   }
 
@@ -78,6 +84,7 @@ public class StudyCafeController {
   public void addFavoriteStudyCafe(
       @AuthenticationPrincipal CustomUserDetails user,
       @PathVariable Long id) {
+    validateUser(user);
     studyCafeService.addFavoriteStudyCafe(user.getId(), id);
   }
 
@@ -85,6 +92,7 @@ public class StudyCafeController {
   public void deleteFavoriteStudyCafe(
       @AuthenticationPrincipal CustomUserDetails user,
       @PathVariable Long id) {
+    validateUser(user);
     studyCafeService.deleteFavoriteStudyCafe(user.getId(), id);
   }
 
@@ -93,7 +101,14 @@ public class StudyCafeController {
       @AuthenticationPrincipal CustomUserDetails user,
       @PathVariable Long id,
       @PathVariable Long userId) {
+    validateUser(user);
     studyCafeService.deleteUserStudyCafeTime(user.getId(), id, userId);
+  }
+
+  private void validateUser(CustomUserDetails user) {
+    if (user == null) {
+      throw new UnauthorizedException("Authentication token is required.");
+    }
   }
 
 }

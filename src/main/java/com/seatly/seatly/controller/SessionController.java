@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.seatly.seatly.auth.CustomUserDetails;
 import com.seatly.seatly.dto.session.SessionInfo;
+import com.seatly.seatly.global.exception.UnauthorizedException;
 import com.seatly.seatly.service.SessionService;
 
 import lombok.RequiredArgsConstructor;
@@ -33,25 +34,34 @@ public class SessionController {
   @PatchMapping("/{id}/start")
   public SessionInfo startSession(@AuthenticationPrincipal CustomUserDetails user,
       @PathVariable Long id) {
+    validateUser(user);
     return service.startSession(user.getId(), id);
   }
 
   @DeleteMapping("/{id}")
   public void endSession(@AuthenticationPrincipal CustomUserDetails user,
       @PathVariable Long id) {
+    validateUser(user);
     service.endSession(user.getId(), user.isAdmin(), id);
   }
 
   @PostMapping("/assign")
   public SessionInfo assignSession(@AuthenticationPrincipal CustomUserDetails user,
       @RequestParam Long seatId) {
+    validateUser(user);
     return service.assignSeat(user.getId(), seatId);
   }
 
   @PostMapping("/auto-assign")
   public SessionInfo autoAssignSession(@AuthenticationPrincipal CustomUserDetails user,
       @RequestParam Long studyCafeId) {
+    validateUser(user);
     return service.autoAssignSeat(user.getId(), studyCafeId);
   }
 
+  private void validateUser(CustomUserDetails user) {
+    if (user == null) {
+      throw new UnauthorizedException("Authentication token is required.");
+    }
+  }
 }

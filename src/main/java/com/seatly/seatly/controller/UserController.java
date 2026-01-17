@@ -20,6 +20,7 @@ import com.seatly.seatly.dto.user.UserInfo;
 import com.seatly.seatly.dto.user.UserPasswordPut;
 import com.seatly.seatly.dto.user.UserPatch;
 import com.seatly.seatly.dto.user.UserPost;
+import com.seatly.seatly.global.exception.UnauthorizedException;
 import com.seatly.seatly.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -39,12 +40,14 @@ public class UserController {
 
   @GetMapping
   public UserInfo getUserInfo(@AuthenticationPrincipal CustomUserDetails user) {
+    validateUser(user);
     return userService.getUserInfo(user.getId());
   }
 
   @PatchMapping
   public void updateUserInfo(@AuthenticationPrincipal CustomUserDetails user,
       @RequestBody UserPatch userPatch) {
+    validateUser(user);
     userService.updateUserInfo(user.getId(), userPatch);
   }
 
@@ -57,17 +60,26 @@ public class UserController {
   @DeleteMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteUser(@AuthenticationPrincipal CustomUserDetails user) {
+    validateUser(user);
     userService.deleteUser(user.getId());
   }
 
   @GetMapping("/study-cafes/favorite")
   public List<Long> getFavoriteStudyCafeIds(@AuthenticationPrincipal CustomUserDetails user) {
+    validateUser(user);
     return userService.getFavoriteStudyCafeIds(user.getId());
   }
 
   @GetMapping("/time-passes")
   public List<TimePass> getTimePasses(@AuthenticationPrincipal CustomUserDetails user) {
+    validateUser(user);
     return userService.getTimePasses(user.getId());
+  }
+
+  private void validateUser(CustomUserDetails user) {
+    if (user == null) {
+      throw new UnauthorizedException("Authentication token is required.");
+    }
   }
 
 }

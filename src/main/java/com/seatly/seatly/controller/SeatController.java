@@ -18,6 +18,7 @@ import com.seatly.seatly.auth.CustomUserDetails;
 import com.seatly.seatly.dto.seat.SeatInfo;
 import com.seatly.seatly.dto.seat.SeatPatch;
 import com.seatly.seatly.dto.seat.SeatPost;
+import com.seatly.seatly.global.exception.UnauthorizedException;
 import com.seatly.seatly.service.SeatService;
 
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ public class SeatController {
   public List<SeatInfo> getSeats(
       @AuthenticationPrincipal CustomUserDetails user,
       @PathVariable Long studyCafeId) {
+    validateUser(user);
     return seatService.getSeats(user.getId(), studyCafeId);
   }
 
@@ -42,6 +44,7 @@ public class SeatController {
       @AuthenticationPrincipal CustomUserDetails user,
       @PathVariable Long studyCafeId,
       @RequestBody List<SeatPost> body) {
+    validateUser(user);
     seatService.addSeat(user.getId(), studyCafeId, body);
   }
 
@@ -50,6 +53,7 @@ public class SeatController {
       @AuthenticationPrincipal CustomUserDetails user,
       @PathVariable Long studyCafeId,
       @RequestBody List<SeatPatch> body) {
+    validateUser(user);
     seatService.updateSeats(user.getId(), body);
   }
 
@@ -58,7 +62,13 @@ public class SeatController {
       @AuthenticationPrincipal CustomUserDetails user,
       @PathVariable Long studyCafeId,
       @PathVariable Long id) {
+    validateUser(user);
     seatService.deleteSeat(user.getId(), id);
   }
 
+  private void validateUser(CustomUserDetails user) {
+    if (user == null) {
+      throw new UnauthorizedException("Authentication token is required.");
+    }
+  }
 }
