@@ -79,6 +79,13 @@ public class StudyCafeService {
     }
 
     StudyCafe result = storeService.save(body.insert());
+
+    UserStudyCafeLink link = new UserStudyCafeLink();
+    link.setStudyCafe(result);
+    link.setUser(user);
+    link.setLinkType(UserCafeLinkType.ADMIN);
+    linkStoreService.save(link);
+
     return result.getId();
   }
 
