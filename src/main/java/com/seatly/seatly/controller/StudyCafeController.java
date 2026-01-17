@@ -19,6 +19,7 @@ import com.seatly.seatly.dto.studycafe.StudyCafeDetail;
 import com.seatly.seatly.dto.studycafe.StudyCafeDetailPost;
 import com.seatly.seatly.dto.studycafe.StudyCafeSummary;
 import com.seatly.seatly.dto.studycafe.StudyCafeUsage;
+import com.seatly.seatly.global.exception.ForbiddenException;
 import com.seatly.seatly.global.exception.UnauthorizedException;
 import com.seatly.seatly.service.StudyCafeService;
 
@@ -45,6 +46,7 @@ public class StudyCafeController {
   public List<StudyCafeSummary> getAdminStudyCafeSummaries(
       @AuthenticationPrincipal CustomUserDetails user) {
     validateUser(user);
+    validateAdmin(user);
     return studyCafeService.getAdminStudyCafeSummaries(user.getId());
   }
 
@@ -59,6 +61,7 @@ public class StudyCafeController {
       @AuthenticationPrincipal CustomUserDetails user,
       @RequestBody StudyCafeDetailPost body) {
     validateUser(user);
+    validateAdmin(user);
     return studyCafeService.addStudyCafe(user.getId(), body);
   }
 
@@ -68,6 +71,7 @@ public class StudyCafeController {
       @PathVariable Long id,
       @RequestBody StudyCafeDetailPost body) {
     validateUser(user);
+    validateAdmin(user);
     studyCafeService.updateStudyCafe(user.getId(), id, body);
   }
 
@@ -77,6 +81,7 @@ public class StudyCafeController {
       @AuthenticationPrincipal CustomUserDetails user,
       @PathVariable Long id) {
     validateUser(user);
+    validateAdmin(user);
     studyCafeService.deleteStudyCafe(user.getId(), id);
   }
 
@@ -102,12 +107,19 @@ public class StudyCafeController {
       @PathVariable Long id,
       @PathVariable Long userId) {
     validateUser(user);
-    studyCafeService.deleteUserStudyCafeTime(user.getId(), id, userId);
+    validateAdmin(user);
+    studyCafeService.deleteUserStudyCafeTime(id, userId);
   }
 
   private void validateUser(CustomUserDetails user) {
     if (user == null) {
       throw new UnauthorizedException("Authentication token is required.");
+    }
+  }
+
+  private void validateAdmin(CustomUserDetails user) {
+    if (!user.isAdmin()) {
+      throw new ForbiddenException("관리자 권한이 필요합니다.");
     }
   }
 

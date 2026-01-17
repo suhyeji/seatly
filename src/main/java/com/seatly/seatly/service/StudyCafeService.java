@@ -2,19 +2,18 @@ package com.seatly.seatly.service;
 
 import java.util.List;
 
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import com.seatly.seatly.domain.StudyCafe;
 import com.seatly.seatly.domain.User;
 import com.seatly.seatly.domain.UserStudyCafeLink;
 import com.seatly.seatly.domain.enums.UserCafeLinkType;
-import com.seatly.seatly.domain.enums.UserRole;
 import com.seatly.seatly.domain.keys.UserTimePassId;
 import com.seatly.seatly.dto.studycafe.StudyCafeDetail;
 import com.seatly.seatly.dto.studycafe.StudyCafeDetailPost;
 import com.seatly.seatly.dto.studycafe.StudyCafeSummary;
 import com.seatly.seatly.dto.studycafe.StudyCafeUsage;
+import com.seatly.seatly.global.exception.ForbiddenException;
 import com.seatly.seatly.store.SeatStoreService;
 import com.seatly.seatly.store.SessionStoreService;
 import com.seatly.seatly.store.StudyCafeStoreService;
@@ -47,13 +46,6 @@ public class StudyCafeService {
 
   public List<StudyCafeSummary> getAdminStudyCafeSummaries(Long userId) {
     User user = userStoreService.findByIdOrNull(userId);
-
-    if (user.getRole() != UserRole.ADMIN) {
-      // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
-      // 403 forbidden 에러 발생
-      throw new AccessDeniedException("관리자 권한이 필요합니다.");
-    }
-
     List<UserStudyCafeLink> links = linkStoreService.getUserStudyCafeLinkByUserIdAndLinkType(
         user.getId(),
         UserCafeLinkType.ADMIN);
@@ -64,7 +56,7 @@ public class StudyCafeService {
   }
 
   public StudyCafeUsage getStudyCafeUsage(Long studyCafeId) {
-    // 전체 seat 갯수 / 전체 세션 갯수
+    // 전체 seat 개수 / 전체 세션 개수
     return new StudyCafeUsage(
         seatStoreService.getCountByStudyCafeId(studyCafeId),
         sessionStoreService.getSessionCountByStudyCafeId(studyCafeId));
@@ -72,12 +64,6 @@ public class StudyCafeService {
 
   public Long addStudyCafe(Long userId, StudyCafeDetailPost body) {
     User user = userStoreService.findByIdOrNull(userId);
-
-    if (user.getRole() != UserRole.ADMIN) {
-      // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
-      throw new AccessDeniedException("관리자 권한이 필요합니다.");
-    }
-
     StudyCafe result = storeService.save(body.insert());
 
     UserStudyCafeLink link = new UserStudyCafeLink();
@@ -90,25 +76,19 @@ public class StudyCafeService {
   }
 
   public void updateStudyCafe(Long userId, Long studyCafeId, StudyCafeDetailPost body) {
-    User user = userStoreService.findByIdOrNull(userId);
-
-    if (user.getRole() != UserRole.ADMIN) {
-      // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
-      throw new AccessDeniedException("관리자 권한이 필요합니다.");
+    UserStudyCafeLink link = linkStoreService.getUserStudyCafeLink(studyCafeId, userId);
+    if (link == null || !UserCafeLinkType.ADMIN.equals(link.getLinkType())) {
+      throw new ForbiddenException("삭제 권한이 없습니다.");
     }
-
     StudyCafe entity = storeService.findByIdOrNull(studyCafeId);
     storeService.save(body.update(entity));
   }
 
   public void deleteStudyCafe(Long userId, Long id) {
-    User user = userStoreService.findByIdOrNull(userId);
-
-    if (user.getRole() != UserRole.ADMIN) {
-      // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
-      throw new AccessDeniedException("관리자 권한이 필요합니다.");
+    UserStudyCafeLink link = linkStoreService.getUserStudyCafeLink(id, userId);
+    if (link == null || !UserCafeLinkType.ADMIN.equals(link.getLinkType())) {
+      throw new ForbiddenException("삭제 권한이 없습니다.");
     }
-
     storeService.deleteById(id);
   }
 
@@ -128,19 +108,20 @@ public class StudyCafeService {
   // 즐겨찾는 스터디카페 삭제
   public void deleteFavoriteStudyCafe(Long userId, Long id) {
     User user = userStoreService.findByIdOrNull(userId);
+    UserStudyCafeLink link = linkStoreService.getUserStudyCafeLink(id, userId);
+    if (link == null || !UserCafeLinkType.FAVORITE.equals(link.getLinkType())) {
+      throw new ForbiddenException("삭제 권한이 없습니다.");
+    }
     linkStoreService.deleteByStudyCafeIdAndUserId(id, user.getId());
   }
 
   // 관리자가 사용자의 studycafe 남은 시간 삭제
-  public void deleteUserStudyCafeTime(Long adminUserId, Long id, Long userId) {
-    User user = userStoreService.findByIdOrNull(adminUserId);
-
-    if (user.getRole() != UserRole.ADMIN) {
-      // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
-      throw new AccessDeniedException("관리자 권한이 필요합니다.");
-    }
-
+  public void deleteUserStudyCafeTime(Long id, Long userId) {
     UserTimePassId timePassId = new UserTimePassId(id, userId);
+    UserStudyCafeLink link = linkStoreService.getUserStudyCafeLink(timePassId.getStudyCafeId(), userId);
+    if (link == null || !UserCafeLinkType.ADMIN.equals(link.getLinkType())) {
+      throw new ForbiddenException("삭제 권한이 없습니다.");
+    }
     userTimePassStoreService.deleteById(timePassId);
   }
 }
