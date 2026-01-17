@@ -19,7 +19,11 @@ public class StudyCafeSummary {
   public StudyCafeSummary(StudyCafe entity) {
     this.id = entity.getId();
     this.name = entity.getName();
-    this.mainImageUrl = entity.getImageUrls().get(0);
+    if (entity.getImageUrls().isEmpty()) {
+      this.mainImageUrl = null;
+    } else {
+      this.mainImageUrl = entity.getImageUrls().get(0);
+    }
     this.address = entity.getAddress();
   }
 
