@@ -8,6 +8,7 @@ import com.seatly.seatly.domain.UserTimePass;
 import com.seatly.seatly.domain.keys.UserTimePassId;
 import com.seatly.seatly.dto.TimePass;
 import com.seatly.seatly.dto.user.UserTimePassInfo;
+import com.seatly.seatly.global.exception.ForbiddenException;
 import com.seatly.seatly.repository.UserTimePassRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,11 @@ public class UserTimePassStoreService {
 
   public UserTimePass findById(UserTimePassId id) {
     return store.findById(id).orElse(null);
+  }
+
+  public UserTimePass findByIdOrThrow(UserTimePassId id) {
+    return store.findById(id).orElseThrow(
+        () -> new ForbiddenException("UserTimePass not found: " + id));
   }
 
   public List<TimePass> findAllByUserId(Long userId) {

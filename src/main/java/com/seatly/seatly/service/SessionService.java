@@ -58,7 +58,9 @@ public class SessionService {
     Long studyCafeId = session.getSeat().getStudyCafe().getId();
     UserTimePass timePass = userTimePassStoreService.findById(new UserTimePassId(studyCafeId, userId));
 
-    // long remainMinutes = timePass.getLeftTime() / (60 * 1000);
+    if (timePass.getLeftTime() <= 0) {
+      throw new ForbiddenException("남은 시간이 존재하지 않습니다.");
+    }
     Duration expire = Duration.ofSeconds(timePass.getLeftTime());
 
     redisService.startSession(id, userId, session.getSeat().getId(), expire);
