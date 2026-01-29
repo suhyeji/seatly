@@ -2,4 +2,4 @@ logging:
   file:
     name: logs/application.log
   level:
-    root: DEBUG
+    root: INFO
