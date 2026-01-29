@@ -56,7 +56,8 @@ public class SessionService {
     session = storeService.save(session);
     // redis에서 값 변경
     Long studyCafeId = session.getSeat().getStudyCafe().getId();
-    UserTimePass timePass = userTimePassStoreService.findById(new UserTimePassId(studyCafeId, userId));
+    UserTimePass timePass = userTimePassStoreService.findByIdOrThrow(
+        new UserTimePassId(studyCafeId, userId));
 
     if (timePass.getLeftTime() <= 0) {
       throw new ForbiddenException("남은 시간이 존재하지 않습니다.");
