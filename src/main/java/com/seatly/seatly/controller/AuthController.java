@@ -2,6 +2,7 @@ package com.seatly.seatly.controller;
 
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,10 +20,12 @@ import com.seatly.seatly.store.UserStoreService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthController {
 
   private final AuthService service;
@@ -31,18 +34,23 @@ public class AuthController {
 
   @PostMapping("/login")
   public ResponseEntity<UserInfo> login(@RequestBody LoginRequest request) {
-    Pair<Long, UserInfo> result = userService.login(request);
-    Long userId = result.getFirst();
-    UserInfo userInfo = result.getSecond();
+    try {
+      Pair<Long, UserInfo> result = userService.login(request);
+      Long userId = result.getFirst();
+      UserInfo userInfo = result.getSecond();
 
-    ResponseCookie accessCookie = service.createAccessTokenCookie(
-        userId, userInfo.getName(), userInfo.getRole());
-    ResponseCookie refreshCookie = service.createRefreshTokenCookie(userId);
+      ResponseCookie accessCookie = service.createAccessTokenCookie(
+          userId, userInfo.getName(), userInfo.getRole());
+      ResponseCookie refreshCookie = service.createRefreshTokenCookie(userId);
 
-    return ResponseEntity.ok()
-        .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
-        .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-        .body(userInfo);
+      return ResponseEntity.ok()
+          .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+          .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+          .body(userInfo);
+    } catch (Exception e) {
+      log.error("", e);
+      return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED).build();
+    }
   }
 
   @PostMapping("/refresh")
