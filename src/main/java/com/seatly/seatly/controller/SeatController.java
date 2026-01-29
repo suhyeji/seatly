@@ -34,8 +34,7 @@ public class SeatController {
   public List<SeatInfo> getSeats(
       @AuthenticationPrincipal CustomUserDetails user,
       @PathVariable Long studyCafeId) {
-    validateUser(user);
-    return seatService.getSeats(user.getId(), studyCafeId);
+    return seatService.getSeats(studyCafeId);
   }
 
   @PostMapping

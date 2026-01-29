@@ -30,14 +30,7 @@ public class SeatService {
     return storeService.findByIdOrNull(id);
   }
 
-  public List<SeatInfo> getSeats(Long userId, Long studyCafeId) {
-    User user = userStoreService.findByIdOrNull(userId);
-
-    if (user.getRole() != UserRole.ADMIN) {
-      // 현재 로그인 한 사용자가 관리자가 아닌 경우 예외 발생
-      throw new AccessDeniedException("관리자 권한이 필요합니다.");
-    }
-
+  public List<SeatInfo> getSeats(Long studyCafeId) {
     return storeService.findAllByStudyCafeId(studyCafeId).stream()
         .map(seat -> new SeatInfo(seat, studyCafeId))
         .toList();
