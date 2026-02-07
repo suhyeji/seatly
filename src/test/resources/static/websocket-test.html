@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Seatly WebSocket Tester</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 20px; }
+        #conversation { width: 100%; height: 300px; border: 1px solid #ccc; overflow-y: scroll; padding: 10px; }
+        .log-entry { margin-bottom: 5px; border-bottom: 1px solid #eee; }
+        .log-time { color: #888; font-size: 0.8em; margin-right: 5px; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Seatly WebSocket Tester</h2>
+            <div class="form-group">
+                <label for="url">WebSocket URL:</label>
+                <input type="text" id="url" class="form-control" value="http://localhost:8080/ws">
+            </div>
+            <div class="form-group">
+                <button id="connect" class="btn btn-primary">Connect</button>
+                <button id="disconnect" class="btn btn-default" disabled="disabled">Disconnect</button>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <h3>Subscribe</h3>
+            <div class="form-group">
+                <label for="topic">Topic:</label>
+                <input type="text" id="topic" class="form-control" value="/topic/study-cafe/1">
+            </div>
+            <button id="subscribe" class="btn btn-info" disabled="disabled">Subscribe</button>
+        </div>
+        <div class="col-md-6">
+            <h3>Send Message (Optional)</h3>
+            <div class="form-group">
+                <label for="sendDestination">Destination:</label>
+                <input type="text" id="sendDestination" class="form-control" value="/app/hello">
+            </div>
+            <div class="form-group">
+                <label for="message">Message (JSON):</label>
+                <textarea id="message" class="form-control" rows="3">{}</textarea>
+            </div>
+            <button id="send" class="btn btn-success" disabled="disabled">Send</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h3>Log</h3>
+            <div id="conversation"></div>
+            <button id="clear" class="btn btn-default">Clear Log</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    var stompClient = null;
+    var subscription = null;
+
+    function setConnected(connected) {
+        $("#connect").prop("disabled", connected);
+        $("#disconnect").prop("disabled", !connected);
+        if (connected) {
+            $("#subscribe").prop("disabled", false);
+            $("#send").prop("disabled", false);
+        } else {
+            $("#subscribe").prop("disabled", true);
+            $("#send").prop("disabled", true);
+        }
+    }
+
+    function log(message, type) {
+        var time = new Date().toLocaleTimeString();
+        var color = type === 'error' ? 'red' : (type === 'recv' ? 'green' : 'black');
+        var entry = '<div class="log-entry" style="color:' + color + '"><span class="log-time">[' + time + ']</span> ' + message + '</div>';
+        $("#conversation").prepend(entry);
+    }
+
+    function connect() {
+        var url = $("#url").val();
+        var socket = new SockJS(url);
+        stompClient = Stomp.over(socket);
+        
+        // Disable debug logging to console to keep it clean, but you can enable it
+        // stompClient.debug = function(str) { console.log(str); };
+
+        stompClient.connect({}, function (frame) {
+            setConnected(true);
+            log('Connected: ' + frame, 'info');
+        }, function (error) {
+            log('Connection Error: ' + error, 'error');
+            setConnected(false);
+        });
+    }
+
+    function disconnect() {
+        if (stompClient !== null) {
+            stompClient.disconnect();
+        }
+        setConnected(false);
+        log("Disconnected", 'info');
+    }
+
+    function subscribe() {
+        var topic = $("#topic").val();
+        if (stompClient && stompClient.connected) {
+            log('Subscribing to ' + topic + '...', 'info');
+            subscription = stompClient.subscribe(topic, function (message) {
+                log('Received (' + topic + '): ' + message.body, 'recv');
+            });
+        }
+    }
+
+    function send() {
+        var destination = $("#sendDestination").val();
+        var message = $("#message").val();
+        if (stompClient && stompClient.connected) {
+            log('Sending to ' + destination + ': ' + message, 'info');
+            stompClient.send(destination, {}, message);
+        }
+    }
+
+    $(function () {
+        $("form").on('submit', function (e) { e.preventDefault(); });
+        $("#connect").click(function() { connect(); });
+        $("#disconnect").click(function() { disconnect(); });
+        $("#subscribe").click(function() { subscribe(); });
+        $("#send").click(function() { send(); });
+        $("#clear").click(function() { $("#conversation").empty(); });
+    });
+</script>
+</body>
+</html>
