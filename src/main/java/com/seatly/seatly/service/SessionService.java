@@ -119,7 +119,7 @@ public class SessionService {
     // 앞에서부터 Redis 선점 시도
     for (Seat seat : seats) {
       Long seatId = seat.getId();
-      if (!redisService.tryLockSeat(seatId)) {
+      if (redisService.hasSessionBySeatId(seatId) || !redisService.tryLockSeat(seatId)) {
         continue; // 이미 다른 요청이 선점
       }
 
