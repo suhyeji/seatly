@@ -18,7 +18,7 @@ import com.seatly.seatly.service.TimePassService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/time-passes")
+@RequestMapping("/api/time-passes")
 @RequiredArgsConstructor
 public class TimePassController {
 
