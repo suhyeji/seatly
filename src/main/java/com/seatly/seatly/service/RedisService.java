@@ -19,15 +19,27 @@ public class RedisService {
   private final Duration lockDuration = Duration.ofSeconds(5);
   private final Duration assignDuration = Duration.ofMinutes(2);
 
+  // 좌석에 대한 락 (동시성 제어용)
   private static final String SEAT_LOCK_KEY = "seat:lock:";
+
+  // 좌석 ID로 세션 ID 조회 (String: sessionId)
   private static final String SEAT_SESSION_KEY = "seat:session:";
+
+  // 사용자 ID로 세션 ID 조회 (String: sessionId)
   private static final String USER_SESSION_KEY = "user:session:";
+
+  // 세션 상세 정보 저장 (Hash: seatId, userId 등)
   private static final String SESSION_KEY = "session:";
+
+  // 세션 만료 처리를 위한 메타 정보 (Hash: seatId, status)
   private static final String SESSION_KEY_META = "session:meta:";
+
   private static final String LOCK = "LOCK";
   private static final String SEAT_ID = "seatId";
   private static final String USER_ID = "userId";
   private static final String STATUS = "status";
+
+  // 리프레시 토큰 저장 (String: refreshToken)
   private static final String REFRESH_TOKEN_KEY = "refreshToken:";
 
   public boolean tryLockSeat(Long seatId) {

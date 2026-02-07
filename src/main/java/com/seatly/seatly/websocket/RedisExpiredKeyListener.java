@@ -4,11 +4,8 @@ import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.stereotype.Component;
 
-import com.seatly.seatly.domain.enums.SeatEventType;
 import com.seatly.seatly.domain.enums.SessionStatus;
-import com.seatly.seatly.dto.seat.SeatEvent;
 import com.seatly.seatly.service.RedisService;
-import com.seatly.seatly.service.SeatService;
 import com.seatly.seatly.service.SessionService;
 
 import lombok.RequiredArgsConstructor;
@@ -21,8 +18,6 @@ public class RedisExpiredKeyListener implements MessageListener {
 
   private final SessionService sessionService;
 
-  private final SeatWebSocketPublisher publisher;
-  private final SeatService seatService;
   private final RedisService redisService;
 
   private static final String SESSION_KEY = "session:";
@@ -41,22 +36,11 @@ public class RedisExpiredKeyListener implements MessageListener {
     Long sessionId = Long.parseLong(key.split(":")[1]);
     SessionStatus status = redisService.getSessionMetaStatusBySessionId(sessionId);
     Long seatId = redisService.getMetaSeatIdBySessionId(sessionId);
-    Long studyCafeId = seatService.getSeatById(seatId).getStudyCafe().getId();
 
     if (status == null || seatId == null) {
       log.warn("[REDIS-EXPIRED] meta missing. sessionId={}", sessionId);
       return;
     }
-
-    // 좌석 점유 또는 사용 종료
-    SeatEventType eventType = SessionStatus.ASSIGNED.equals(status)
-        ? SeatEventType.HOLD_RELEASED
-        : SeatEventType.USAGE_FINISHED;
-
-    // websocket 전송
-    publisher.publishToStudyCafe(
-        studyCafeId,
-        new SeatEvent(eventType, seatId));
 
     // metadata 삭제
     redisService.deleteSessionMeta(sessionId);

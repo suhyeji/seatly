@@ -65,6 +65,10 @@ public class SessionService {
     Duration expire = Duration.ofSeconds(timePass.getLeftTime());
 
     redisService.startSession(id, userId, session.getSeat().getId(), expire);
+
+    // User - 좌석 이용 시작 알림 전송
+    sendWebSocketEventUser(userId, session.getSeat().getId(), SeatEventType.USAGE_STARTED);
+
     return new SessionInfo(session);
   }
 
@@ -73,8 +77,17 @@ public class SessionService {
       throw new ForbiddenException("사용자 정보와 세션 아이디가 일치하지 않습니다.");
     }
     storeService.findById(id).ifPresent(session -> {
+      Long studyCafeId = session.getSeat().getStudyCafe().getId();
+      Long seatId = session.getSeat().getId();
+      Long sessionUserId = session.getUser().getId();
+
       redisService.deleteSession(session.getId());
       storeService.delete(session);
+
+      // Global - 좌석 이용 종료 알림 전송
+      sendWebSocketEventGlobal(studyCafeId, seatId, SeatEventType.USAGE_FINISHED);
+      // User - 좌석 이용 종료 알림 전송
+      sendWebSocketEventUser(sessionUserId, seatId, SeatEventType.USAGE_FINISHED);
     });
   }
 
@@ -102,6 +115,10 @@ public class SessionService {
       Session session = createAssignedSession(user, seat);
       session = storeService.save(session);
       redisService.setAssignSession(session.getId(), userId, seatId);
+
+      // Global - 좌석 점유 완료 알림 전송
+      sendWebSocketEventGlobal(seat.getStudyCafe().getId(), seatId, SeatEventType.ASSIGNED);
+
       return new SessionInfo(session);
     } finally {
       redisService.unlockSeat(seatId);
@@ -127,6 +144,10 @@ public class SessionService {
         Session session = createAssignedSession(user, seat);
         session = storeService.save(session);
         redisService.setAssignSession(session.getId(), userId, seatId);
+
+        // Global - 좌석 점유 완료 알림 전송
+        sendWebSocketEventGlobal(seat.getStudyCafe().getId(), seatId, SeatEventType.ASSIGNED);
+
         return new SessionInfo(session);
       } catch (Exception e) {
         redisService.unlockSeat(seatId);
@@ -136,14 +157,6 @@ public class SessionService {
 
     // 배정 가능한 좌석이 하나도 없는 경우
     throw new NotFoundException("Available seat not found. studyCafeId=" + studyCafeId);
-  }
-
-  private Session createAssignedSession(User user, Seat seat) {
-    Session session = new Session();
-    session.setUser(user);
-    session.setSeat(seat);
-    session.setStatus(SessionStatus.ASSIGNED);
-    return session;
   }
 
   @Transactional
@@ -158,12 +171,34 @@ public class SessionService {
     userTimePassStoreService.deleteByUserIdAndStudyCafeId(userId, studyCafeId);
     redisService.deleteSession(session.getId());
 
-    seatWebSocketPublisher.publishToStudyCafe(
-        studyCafeId,
-        new SeatEvent(SeatEventType.USAGE_FINISHED, seatId));
+    SeatEventType type = SeatEventType.USAGE_FINISHED;
+    if (session.getStatus().equals(SessionStatus.ASSIGNED)) {
+      type = SeatEventType.HOLD_RELEASED;
+    }
 
+    // Global - 좌석 이용 종료 알림 전송
+    sendWebSocketEventGlobal(studyCafeId, seatId, type);
+    // User - 좌석 이용 종료 알림 전송
+    sendWebSocketEventUser(userId, seatId, type);
+  }
+
+  private void sendWebSocketEventUser(Long userId, Long seatId, SeatEventType type) {
     seatWebSocketPublisher.publishToUser(
         userId,
-        new SeatEvent(SeatEventType.USAGE_FINISHED, seatId));
+        new SeatEvent(type, seatId));
+  }
+
+  private void sendWebSocketEventGlobal(Long studyCafeId, Long seatId, SeatEventType type) {
+    seatWebSocketPublisher.publishToStudyCafe(
+        studyCafeId,
+        new SeatEvent(type, seatId));
+  }
+
+  private Session createAssignedSession(User user, Seat seat) {
+    Session session = new Session();
+    session.setUser(user);
+    session.setSeat(seat);
+    session.setStatus(SessionStatus.ASSIGNED);
+    return session;
   }
 }
