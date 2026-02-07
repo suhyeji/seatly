@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.seatly.seatly.auth.CustomUserDetails;
 import com.seatly.seatly.dto.TimePass;
+import com.seatly.seatly.dto.session.SessionInfo;
 import com.seatly.seatly.dto.user.UserInfo;
 import com.seatly.seatly.dto.user.UserPasswordPut;
 import com.seatly.seatly.dto.user.UserPatch;
@@ -64,7 +65,7 @@ public class UserController {
     userService.deleteUser(user.getId());
   }
 
-  @GetMapping("/study-cafes/favorite")
+  @GetMapping("/study-cafess/favorite")
   public List<Long> getFavoriteStudyCafeIds(@AuthenticationPrincipal CustomUserDetails user) {
     validateUser(user);
     return userService.getFavoriteStudyCafeIds(user.getId());
@@ -74,6 +75,12 @@ public class UserController {
   public List<TimePass> getTimePasses(@AuthenticationPrincipal CustomUserDetails user) {
     validateUser(user);
     return userService.getTimePasses(user.getId());
+  }
+
+  @GetMapping("/sessions")
+  public List<SessionInfo> getSessions(@AuthenticationPrincipal CustomUserDetails user) {
+    validateUser(user);
+    return userService.getSessions(user.getId());
   }
 
   private void validateUser(CustomUserDetails user) {
