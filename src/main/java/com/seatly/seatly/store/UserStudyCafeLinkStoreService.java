@@ -1,6 +1,7 @@
 package com.seatly.seatly.store;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,16 @@ public class UserStudyCafeLinkStoreService {
       Long userId,
       UserCafeLinkType linkType) {
     return store.findStudyCafeIdsByUserIdAndLinkType(userId, linkType);
+  }
+
+  public Optional<Long> getUserIdByStudyCafeIdAndLinkType(
+      Long studyCafeId,
+      UserCafeLinkType linkType) {
+    List<Long> result = store.findUserIdsByStudyCafeIdAndLinkType(studyCafeId, linkType);
+    if (result == null || result.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.of(result.get(0));
   }
 
   public UserStudyCafeLink getUserStudyCafeLink(Long studyCafeId, Long userId) {

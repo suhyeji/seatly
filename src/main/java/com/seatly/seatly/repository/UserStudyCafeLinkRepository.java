@@ -11,29 +11,39 @@ import com.seatly.seatly.domain.UserStudyCafeLink;
 import com.seatly.seatly.domain.enums.UserCafeLinkType;
 
 public interface UserStudyCafeLinkRepository
-    extends JpaRepository<UserStudyCafeLink, Long> {
+                extends JpaRepository<UserStudyCafeLink, Long> {
 
-  Optional<UserStudyCafeLink> findByStudyCafeIdAndUserId(
-      Long studyCafeId,
-      Long userId);
+        Optional<UserStudyCafeLink> findByStudyCafeIdAndUserId(
+                        Long studyCafeId,
+                        Long userId);
 
-  boolean existsByStudyCafeIdAndUserId(
-      Long studyCafeId,
-      Long userId);
+        boolean existsByStudyCafeIdAndUserId(
+                        Long studyCafeId,
+                        Long userId);
 
-  List<UserStudyCafeLink> findAllByUserId(Long userId);
+        List<UserStudyCafeLink> findAllByUserId(Long userId);
 
-  List<UserStudyCafeLink> findAllByUserIdAndLinkType(
-      Long userId,
-      UserCafeLinkType linkType);
+        List<UserStudyCafeLink> findAllByUserIdAndLinkType(
+                        Long userId,
+                        UserCafeLinkType linkType);
 
-  @Query("""
-        select u.studyCafe.id
-        from UserStudyCafeLink u
-        where u.user.id = :userId
-          and u.linkType = :linkType
-      """)
-  List<Long> findStudyCafeIdsByUserIdAndLinkType(
-      @Param("userId") Long userId,
-      @Param("linkType") UserCafeLinkType linkType);
+        @Query("""
+                          select u.studyCafe.id
+                          from UserStudyCafeLink u
+                          where u.user.id = :userId
+                            and u.linkType = :linkType
+                        """)
+        List<Long> findStudyCafeIdsByUserIdAndLinkType(
+                        @Param("userId") Long userId,
+                        @Param("linkType") UserCafeLinkType linkType);
+
+        @Query("""
+                          select u.user.id
+                          from UserStudyCafeLink u
+                          where u.studyCafe.id = :studyCafeId
+                            and u.linkType = :linkType
+                        """)
+        List<Long> findUserIdsByStudyCafeIdAndLinkType(
+                        @Param("studyCafeId") Long studyCafeId,
+                        @Param("linkType") UserCafeLinkType linkType);
 }

@@ -12,12 +12,12 @@ import com.seatly.seatly.domain.Seat;
 import com.seatly.seatly.domain.Session;
 import com.seatly.seatly.domain.User;
 import com.seatly.seatly.domain.UserTimePass;
-import com.seatly.seatly.domain.enums.SeatEventType;
+import com.seatly.seatly.domain.enums.WebSocketEventType;
 import com.seatly.seatly.domain.enums.SeatStatus;
 import com.seatly.seatly.domain.enums.SessionStatus;
 import com.seatly.seatly.domain.keys.UserTimePassId;
-import com.seatly.seatly.dto.seat.SeatEvent;
 import com.seatly.seatly.dto.session.SessionInfo;
+import com.seatly.seatly.dto.websocket.SeatEvent;
 import com.seatly.seatly.global.Util;
 import com.seatly.seatly.global.exception.ForbiddenException;
 import com.seatly.seatly.global.exception.NotFoundException;
@@ -25,7 +25,7 @@ import com.seatly.seatly.store.SeatStoreService;
 import com.seatly.seatly.store.SessionStoreService;
 import com.seatly.seatly.store.UserStoreService;
 import com.seatly.seatly.store.UserTimePassStoreService;
-import com.seatly.seatly.websocket.SeatWebSocketPublisher;
+import com.seatly.seatly.websocket.WebSocketPublisher;
 
 import lombok.RequiredArgsConstructor;
 
@@ -39,7 +39,7 @@ public class SessionService {
   private final SeatStoreService seatStoreService;
   private final UserTimePassStoreService userTimePassStoreService;
 
-  private final SeatWebSocketPublisher seatWebSocketPublisher;
+  private final WebSocketPublisher webSocketPublisher;
 
   public List<SessionInfo> getSessions(Long studyCafeId) {
     return storeService.findSessionInfosByStudyCafeId(studyCafeId);
@@ -67,7 +67,7 @@ public class SessionService {
     redisService.startSession(id, userId, session.getSeat().getId(), expire);
 
     // User - 좌석 이용 시작 알림 전송
-    sendWebSocketEventUser(userId, session.getSeat().getId(), SeatEventType.USAGE_STARTED);
+    sendWebSocketEventUser(userId, session.getSeat().getId(), WebSocketEventType.SEAT_USAGE_STARTED);
 
     return new SessionInfo(session);
   }
@@ -85,9 +85,9 @@ public class SessionService {
       storeService.delete(session);
 
       // Global - 좌석 이용 종료 알림 전송
-      sendWebSocketEventGlobal(studyCafeId, seatId, SeatEventType.USAGE_FINISHED);
+      sendWebSocketEventGlobal(studyCafeId, seatId, WebSocketEventType.SEAT_USAGE_FINISHED);
       // User - 좌석 이용 종료 알림 전송
-      sendWebSocketEventUser(sessionUserId, seatId, SeatEventType.USAGE_FINISHED);
+      sendWebSocketEventUser(sessionUserId, seatId, WebSocketEventType.SEAT_USAGE_FINISHED);
     });
   }
 
@@ -117,7 +117,7 @@ public class SessionService {
       redisService.setAssignSession(session.getId(), userId, seatId);
 
       // Global - 좌석 점유 완료 알림 전송
-      sendWebSocketEventGlobal(seat.getStudyCafe().getId(), seatId, SeatEventType.ASSIGNED);
+      sendWebSocketEventGlobal(seat.getStudyCafe().getId(), seatId, WebSocketEventType.SEAT_ASSIGNED);
 
       return new SessionInfo(session);
     } finally {
@@ -146,7 +146,7 @@ public class SessionService {
         redisService.setAssignSession(session.getId(), userId, seatId);
 
         // Global - 좌석 점유 완료 알림 전송
-        sendWebSocketEventGlobal(seat.getStudyCafe().getId(), seatId, SeatEventType.ASSIGNED);
+        sendWebSocketEventGlobal(seat.getStudyCafe().getId(), seatId, WebSocketEventType.SEAT_ASSIGNED);
 
         return new SessionInfo(session);
       } catch (Exception e) {
@@ -171,9 +171,9 @@ public class SessionService {
     userTimePassStoreService.deleteByUserIdAndStudyCafeId(userId, studyCafeId);
     redisService.deleteSession(session.getId());
 
-    SeatEventType type = SeatEventType.USAGE_FINISHED;
+    WebSocketEventType type = WebSocketEventType.SEAT_USAGE_FINISHED;
     if (session.getStatus().equals(SessionStatus.ASSIGNED)) {
-      type = SeatEventType.HOLD_RELEASED;
+      type = WebSocketEventType.SEAT_HOLD_RELEASED;
     }
 
     // Global - 좌석 이용 종료 알림 전송
@@ -182,14 +182,14 @@ public class SessionService {
     sendWebSocketEventUser(userId, seatId, type);
   }
 
-  private void sendWebSocketEventUser(Long userId, Long seatId, SeatEventType type) {
-    seatWebSocketPublisher.publishToUser(
+  private void sendWebSocketEventUser(Long userId, Long seatId, WebSocketEventType type) {
+    webSocketPublisher.publishSeatEventToUser(
         userId,
         new SeatEvent(type, seatId));
   }
 
-  private void sendWebSocketEventGlobal(Long studyCafeId, Long seatId, SeatEventType type) {
-    seatWebSocketPublisher.publishToStudyCafe(
+  private void sendWebSocketEventGlobal(Long studyCafeId, Long seatId, WebSocketEventType type) {
+    webSocketPublisher.publishSeatEventToStudyCafe(
         studyCafeId,
         new SeatEvent(type, seatId));
   }

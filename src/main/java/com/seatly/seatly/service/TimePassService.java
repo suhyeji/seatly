@@ -9,11 +9,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.seatly.seatly.domain.UserTimePass;
+import com.seatly.seatly.domain.enums.UserCafeLinkType;
+import com.seatly.seatly.domain.enums.WebSocketEventType;
 import com.seatly.seatly.domain.keys.UserTimePassId;
 import com.seatly.seatly.dto.timepass.TimePassRequest;
+import com.seatly.seatly.dto.websocket.TimePassRequestEvent;
 import com.seatly.seatly.store.StudyCafeStoreService;
 import com.seatly.seatly.store.UserStoreService;
+import com.seatly.seatly.store.UserStudyCafeLinkStoreService;
 import com.seatly.seatly.store.UserTimePassStoreService;
+import com.seatly.seatly.websocket.WebSocketPublisher;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,8 +29,10 @@ public class TimePassService {
   private final UserStoreService userStoreService;
   private final StudyCafeStoreService studyCafeStoreService;
   private final UserTimePassStoreService userTimePassStoreService;
+  private final UserStudyCafeLinkStoreService userStudyCafeLinkStoreService;
 
   private final RedisService redisService;
+  private final WebSocketPublisher webSocketPublisher;
 
   private final AtomicLong requestId = new AtomicLong(0L);
   private final Map<Long, TimePassRequest> requests = new ConcurrentHashMap<>();
@@ -42,6 +49,9 @@ public class TimePassService {
     TimePassRequest request = new TimePassRequest(id, userId, studyCafeId, time);
     requests.put(id, request);
     // WebSocket으로 관리자에게 알림
+    userStudyCafeLinkStoreService.getUserIdByStudyCafeIdAndLinkType(studyCafeId, UserCafeLinkType.ADMIN)
+        .ifPresent(adminId -> webSocketPublisher.publishTimePassReqEventToUser(adminId,
+            new TimePassRequestEvent(WebSocketEventType.TIMEPASS_REQUEST, request)));
   }
 
   @Transactional
