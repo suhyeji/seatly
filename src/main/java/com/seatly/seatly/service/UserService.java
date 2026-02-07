@@ -91,6 +91,7 @@ public class UserService {
   }
 
   private void setDto(UserInfo result, User user) {
+    result.setId(user.getId());
     result.setEmail(user.getEmail());
     result.setName(user.getName());
     result.setPhone(user.getPhone());
@@ -101,6 +102,7 @@ public class UserService {
   public UserInfo getUserInfo(Long id) {
     UserInfo result = new UserInfo();
     User user = userStoreService.findByIdOrThrow(id);
+    result.setId(id);
     result.setEmail(user.getEmail());
     result.setName(user.getName());
     result.setPhone(user.getPhone());

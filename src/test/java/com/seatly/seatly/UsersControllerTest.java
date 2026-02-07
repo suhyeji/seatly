@@ -188,6 +188,7 @@ class UsersControllerTest {
     UserInfo actual = mapper.readValue(body, UserInfo.class);
 
     UserInfo expected = new UserInfo();
+    expected.setId(user1.getId());
     expected.setEmail(user1.getEmail());
     expected.setName(user1.getName());
     expected.setPhone(user1.getPhone());
