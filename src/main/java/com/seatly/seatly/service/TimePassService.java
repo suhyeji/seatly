@@ -58,6 +58,10 @@ public class TimePassService {
   public void acceptRequest(Long requestId) {
     TimePassRequest request = requests.remove(requestId);
 
+    // WebSocket으로 사용자에게 알림
+    webSocketPublisher.publishTimePassReqEventToUser(request.getUserId(),
+        new TimePassRequestEvent(WebSocketEventType.TIMEPASS_REQUEST_ACCEPTED, request));
+
     Long studyCafeId = request.getStudyCafeId();
     Long userId = request.getUserId();
     Long time = request.getTime();
@@ -83,8 +87,11 @@ public class TimePassService {
   }
 
   public void rejectRequest(Long requestId) {
-    requests.remove(requestId);
-    //
+    TimePassRequest request = requests.remove(requestId);
+
+    // WebSocket으로 사용자에게 알림
+    webSocketPublisher.publishTimePassReqEventToUser(request.getUserId(),
+        new TimePassRequestEvent(WebSocketEventType.TIMEPASS_REQUEST_REJECTED, request));
   }
 
 }
