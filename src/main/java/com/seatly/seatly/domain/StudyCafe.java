@@ -50,8 +50,11 @@ public class StudyCafe {
   @Column(columnDefinition = "jsonb")
   private List<Facility> facilities = new ArrayList<>();
 
-  @Column(length = 100)
+  @Column(columnDefinition = "TEXT")
   private String openingHours;
+
+  @Column(columnDefinition = "TEXT")
+  private String timePasses;
 
   @Column(length = 50)
   private String description;
