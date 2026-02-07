@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,16 +39,6 @@ public class UsersController {
     validateUser(user);
     validateAdmin(user);
     return userService.getUserInfo(id);
-  }
-
-  @PostMapping("/{id}/time")
-  public void addUserTimePass(@AuthenticationPrincipal CustomUserDetails user,
-      @PathVariable Long id,
-      @RequestParam Long studyCafeId,
-      @RequestParam Long time) {
-    validateUser(user);
-    validateAdmin(user);
-    userService.addUserTimePass(id, studyCafeId, time);
   }
 
   private void validateUser(CustomUserDetails user) {

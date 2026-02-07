@@ -3,27 +3,19 @@ package com.seatly.seatly.service;
 import java.util.List;
 
 import org.springframework.data.util.Pair;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.seatly.seatly.domain.User;
-import com.seatly.seatly.domain.UserTimePass;
 import com.seatly.seatly.domain.enums.UserCafeLinkType;
-import com.seatly.seatly.domain.keys.UserTimePassId;
 import com.seatly.seatly.dto.TimePass;
 import com.seatly.seatly.dto.login.LoginRequest;
 import com.seatly.seatly.dto.session.SessionInfo;
 import com.seatly.seatly.dto.user.UserInfo;
-import com.seatly.seatly.dto.user.UserPasswordPut;
-import com.seatly.seatly.dto.user.UserPatch;
 import com.seatly.seatly.dto.user.UserPost;
 import com.seatly.seatly.dto.user.UserTimePassInfo;
 import com.seatly.seatly.store.SessionStoreService;
-import com.seatly.seatly.store.StudyCafeStoreService;
 import com.seatly.seatly.store.UserStoreService;
 import com.seatly.seatly.store.UserStudyCafeLinkStoreService;
 import com.seatly.seatly.store.UserTimePassStoreService;
@@ -38,9 +30,6 @@ public class UserService {
   private final UserStudyCafeLinkStoreService userStudyCafeLinkStoreService;
   private final SessionStoreService sessionStoreService;
   private final UserTimePassStoreService userTimePassStoreService;
-  private final StudyCafeStoreService studyCafeStoreService;
-
-  private final RedisService redisService;
 
   private final PasswordEncoder passwordEncoder;
 
@@ -100,45 +89,6 @@ public class UserService {
 
   public List<UserTimePassInfo> getUsersTimeInfo(Long studyCafeId) {
     return userTimePassStoreService.getTimePasseInfosByStudyCafeId(studyCafeId);
-  }
-
-  @Transactional
-  public void addUserTimePass(Long userId, Long studyCafeId, Long time) {
-    UserTimePassId id = new UserTimePassId(studyCafeId, userId);
-    UserTimePass timePass = userTimePassStoreService.findById(id);
-    if (timePass == null) {
-      timePass = new UserTimePass();
-      timePass.setId(id);
-      timePass.setUser(userStoreService.findByIdOrThrow(userId));
-      timePass.setStudyCafe(studyCafeStoreService.findByIdOrThrow(studyCafeId));
-      timePass.setLeftTime(time);
-      timePass.setTotalTime(time);
-    } else {
-      timePass.setLeftTime(timePass.getLeftTime() + time);
-      timePass.setTotalTime(timePass.getTotalTime() + time);
-    }
-    userTimePassStoreService.save(timePass);
-
-    if (redisService.hasSessionByUserId(userId)) {
-      redisService.extendSessionTimeByUserId(userId, time);
-    }
-  }
-
-  public void updateUserInfo(Long id, UserPatch userPatch) {
-    User user = userStoreService.findByIdOrThrow(id);
-    userStoreService.save(userPatch.patch(user));
-  }
-
-  @Transactional
-  public void updatePassword(Long id, UserPasswordPut passwordPut) {
-    User user = userStoreService.findByIdOrThrow(id);
-    if (!passwordEncoder.matches(passwordPut.getCurrentPassword(), user.getPassword())) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST,
-          "현재 비밀번호가 일치하지 않습니다.");
-    }
-    user.setPassword(passwordEncoder.encode(passwordPut.getNewPassword()));
-    userStoreService.save(user);
   }
 
   public void deleteUser(Long id) {
