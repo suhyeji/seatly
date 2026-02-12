@@ -116,9 +116,9 @@ public class StudyCafeService {
   }
 
   // 관리자가 사용자의 studycafe 남은 시간 삭제
-  public void deleteUserStudyCafeTime(Long id, Long userId) {
+  public void deleteUserStudyCafeTime(Long id, Long userId, Long adminId) {
     UserTimePassId timePassId = new UserTimePassId(id, userId);
-    UserStudyCafeLink link = linkStoreService.getUserStudyCafeLink(timePassId.getStudyCafeId(), userId);
+    UserStudyCafeLink link = linkStoreService.getUserStudyCafeLink(timePassId.getStudyCafeId(), adminId);
     if (link == null || !UserCafeLinkType.ADMIN.equals(link.getLinkType())) {
       throw new ForbiddenException("삭제 권한이 없습니다.");
     }

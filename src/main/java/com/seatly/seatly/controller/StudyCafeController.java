@@ -108,7 +108,7 @@ public class StudyCafeController {
       @PathVariable Long userId) {
     validateUser(user);
     validateAdmin(user);
-    studyCafeService.deleteUserStudyCafeTime(id, userId);
+    studyCafeService.deleteUserStudyCafeTime(id, userId, user.getId());
   }
 
   private void validateUser(CustomUserDetails user) {
