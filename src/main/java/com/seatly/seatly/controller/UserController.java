@@ -65,7 +65,7 @@ public class UserController {
     userService.deleteUser(user.getId());
   }
 
-  @GetMapping("/study-cafess/favorite")
+  @GetMapping("/study-cafes/favorite")
   public List<Long> getFavoriteStudyCafeIds(@AuthenticationPrincipal CustomUserDetails user) {
     validateUser(user);
     return userService.getFavoriteStudyCafeIds(user.getId());
