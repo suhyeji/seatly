@@ -72,6 +72,7 @@ public class SessionService {
     return new SessionInfo(session);
   }
 
+  @Transactional
   public void endSession(Long userId, boolean isAdmin, Long id) {
     if (!isAdmin && !id.equals(redisService.getSessionIdByUserId(userId))) {
       throw new ForbiddenException("사용자 정보와 세션 아이디가 일치하지 않습니다.");
@@ -80,6 +81,22 @@ public class SessionService {
       Long studyCafeId = session.getSeat().getStudyCafe().getId();
       Long seatId = session.getSeat().getId();
       Long sessionUserId = session.getUser().getId();
+
+      // TimePass 차감: startTime이 존재하면 이용 시간만큼 leftTime 차감
+      if (session.getStartTime() != null) {
+        long usedSeconds = Duration.between(session.getStartTime(), Util.now()).getSeconds();
+        UserTimePassId timePassId = new UserTimePassId(studyCafeId, sessionUserId);
+        UserTimePass timePass = userTimePassStoreService.findById(timePassId);
+        if (timePass != null) {
+          long newLeftTime = timePass.getLeftTime() - usedSeconds;
+          if (newLeftTime <= 0) {
+            userTimePassStoreService.deleteByUserIdAndStudyCafeId(sessionUserId, studyCafeId);
+          } else {
+            timePass.setLeftTime(newLeftTime);
+            userTimePassStoreService.save(timePass);
+          }
+        }
+      }
 
       redisService.deleteSession(session.getId());
       storeService.delete(session);
