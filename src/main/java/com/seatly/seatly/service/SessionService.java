@@ -101,6 +101,10 @@ public class SessionService {
 
   @Transactional
   public SessionInfo assignSeat(Long userId, Long seatId) {
+    if (redisService.hasSessionByUserId(userId)) {
+      throw new IllegalStateException("이미 이용 중인 세션이 존재합니다.");
+    }
+
     Seat seat = seatStoreService.findByIdOrThrow(seatId);
     if (SeatStatus.UNAVAILABLE.equals(seat.getStatus())) {
       throw new IllegalStateException("사용 불가능한 좌석입니다.");
@@ -127,6 +131,10 @@ public class SessionService {
 
   @Transactional
   public SessionInfo autoAssignSeat(Long userId, Long studyCafeId) {
+    if (redisService.hasSessionByUserId(userId)) {
+      throw new IllegalStateException("이미 이용 중인 세션이 존재합니다.");
+    }
+
     User user = userStoreService.findByIdOrThrow(userId);
 
     // DB에서 AVAILABLE 좌석 목록 조회 (id로 정렬)
