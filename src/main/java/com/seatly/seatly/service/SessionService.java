@@ -79,40 +79,25 @@ public class SessionService {
     }
 
     storeService.findById(id).ifPresent(session -> {
-      WebSocketEventType eventType;
-      Long studyCafeId = session.getSeat().getStudyCafe().getId();
-      Long seatId = session.getSeat().getId();
-      Long sessionUserId = session.getUser().getId();
-
-      if (session.getStatus().equals(SessionStatus.ASSIGNED)) {
-        eventType = WebSocketEventType.SEAT_HOLD_RELEASED;
-      } else {
-        eventType = WebSocketEventType.SEAT_USAGE_FINISHED;
-
-        // TimePass 차감: startTime이 존재하면 이용 시간만큼 leftTime 차감
-        if (session.getStartTime() != null) {
-          long usedSeconds = Duration.between(session.getStartTime(), Util.now()).getSeconds();
-          UserTimePassId timePassId = new UserTimePassId(studyCafeId, sessionUserId);
-          UserTimePass timePass = userTimePassStoreService.findById(timePassId);
-          if (timePass != null) {
-            long newLeftTime = timePass.getLeftTime() - usedSeconds;
-            if (newLeftTime <= 0) {
-              userTimePassStoreService.deleteByUserIdAndStudyCafeId(sessionUserId, studyCafeId);
-            } else {
-              timePass.setLeftTime(newLeftTime);
-              userTimePassStoreService.save(timePass);
-            }
+      // TimePass 차감: IN_USE 상태이고 startTime이 존재하면 이용 시간만큼 leftTime 차감
+      if (!session.getStatus().equals(SessionStatus.ASSIGNED) && session.getStartTime() != null) {
+        Long studyCafeId = session.getSeat().getStudyCafe().getId();
+        Long sessionUserId = session.getUser().getId();
+        long usedSeconds = Duration.between(session.getStartTime(), Util.now()).getSeconds();
+        UserTimePassId timePassId = new UserTimePassId(studyCafeId, sessionUserId);
+        UserTimePass timePass = userTimePassStoreService.findById(timePassId);
+        if (timePass != null) {
+          long newLeftTime = timePass.getLeftTime() - usedSeconds;
+          if (newLeftTime <= 0) {
+            userTimePassStoreService.deleteByUserIdAndStudyCafeId(sessionUserId, studyCafeId);
+          } else {
+            timePass.setLeftTime(newLeftTime);
+            userTimePassStoreService.save(timePass);
           }
         }
       }
 
-      redisService.deleteSession(session.getId());
-      storeService.delete(session);
-
-      // Global - 좌석 이용 종료 알림 전송
-      sendWebSocketEventGlobal(studyCafeId, seatId, eventType);
-      // User - 좌석 이용 종료 알림 전송
-      sendWebSocketEventUser(sessionUserId, seatId, eventType);
+      terminateSession(session);
     });
   }
 
@@ -190,26 +175,35 @@ public class SessionService {
   }
 
   @Transactional
-  public void finishSession(Long sessionId) {
+  public void endByExpiration(Long sessionId) {
     Session session = storeService.findByIdOrThrow(sessionId);
-    // session 종료
+    // 만료에 의한 종료: TimePass 전액 삭제
+    Long studyCafeId = session.getSeat().getStudyCafe().getId();
+    Long userId = session.getUser().getId();
+    userTimePassStoreService.deleteByUserIdAndStudyCafeId(userId, studyCafeId);
+
+    terminateSession(session);
+  }
+
+  /**
+   * 세션 종료 공통 처리: 세션 삭제, Redis 삭제, WebSocket 알림 전송
+   */
+  private void terminateSession(Session session) {
     Long studyCafeId = session.getSeat().getStudyCafe().getId();
     Long seatId = session.getSeat().getId();
     Long userId = session.getUser().getId();
 
-    storeService.delete(session);
-    userTimePassStoreService.deleteByUserIdAndStudyCafeId(userId, studyCafeId);
-    redisService.deleteSession(session.getId());
+    WebSocketEventType eventType = session.getStatus().equals(SessionStatus.ASSIGNED)
+        ? WebSocketEventType.SEAT_HOLD_RELEASED
+        : WebSocketEventType.SEAT_USAGE_FINISHED;
 
-    WebSocketEventType type = WebSocketEventType.SEAT_USAGE_FINISHED;
-    if (session.getStatus().equals(SessionStatus.ASSIGNED)) {
-      type = WebSocketEventType.SEAT_HOLD_RELEASED;
-    }
+    redisService.deleteSession(session.getId());
+    storeService.delete(session);
 
     // Global - 좌석 이용 종료 알림 전송
-    sendWebSocketEventGlobal(studyCafeId, seatId, type);
+    sendWebSocketEventGlobal(studyCafeId, seatId, eventType);
     // User - 좌석 이용 종료 알림 전송
-    sendWebSocketEventUser(userId, seatId, type);
+    sendWebSocketEventUser(userId, seatId, eventType);
   }
 
   private void sendWebSocketEventUser(Long userId, Long seatId, WebSocketEventType type) {

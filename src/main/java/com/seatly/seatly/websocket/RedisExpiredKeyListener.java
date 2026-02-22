@@ -46,6 +46,6 @@ public class RedisExpiredKeyListener implements MessageListener {
     redisService.deleteSessionMeta(sessionId);
 
     // DB 삭제
-    sessionService.finishSession(sessionId);
+    sessionService.endByExpiration(sessionId);
   }
 }
