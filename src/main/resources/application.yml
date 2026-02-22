@@ -32,4 +32,4 @@ jwt:
   refresh-token-expire-ms: 1209600000 # 14일
 
 file:
-  upload-dir: ${user.home}/seatly/uploads
+  upload-dir: /app/uploads
