@@ -23,7 +23,7 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST}
+      host: redis
       port: 6379
 
 jwt:
