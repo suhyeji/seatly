@@ -118,9 +118,10 @@ public class SessionService {
 
   @Transactional
   public SessionInfo assignSeat(Long userId, Long seatId) {
-    validateSession(userId, seatId);
-
     Seat seat = seatStoreService.findByIdOrThrow(seatId);
+    long studyCafeId = seat.getStudyCafe().getId();
+    validateSession(userId, studyCafeId);
+
     if (SeatStatus.UNAVAILABLE.equals(seat.getStatus())) {
       throw new IllegalStateException("사용 불가능한 좌석입니다.");
     }
@@ -136,7 +137,7 @@ public class SessionService {
       redisService.setAssignSession(session.getId(), userId, seatId);
 
       // Global - 좌석 점유 완료 알림 전송
-      sendWebSocketEventGlobal(seat.getStudyCafe().getId(), seatId, WebSocketEventType.SEAT_ASSIGNED);
+      sendWebSocketEventGlobal(studyCafeId, seatId, WebSocketEventType.SEAT_ASSIGNED);
 
       return new SessionInfo(session);
     } finally {
