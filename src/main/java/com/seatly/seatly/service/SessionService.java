@@ -118,9 +118,7 @@ public class SessionService {
 
   @Transactional
   public SessionInfo assignSeat(Long userId, Long seatId) {
-    if (redisService.hasSessionByUserId(userId)) {
-      throw new IllegalStateException("이미 이용 중인 세션이 존재합니다.");
-    }
+    validateSession(userId, seatId);
 
     Seat seat = seatStoreService.findByIdOrThrow(seatId);
     if (SeatStatus.UNAVAILABLE.equals(seat.getStatus())) {
@@ -148,9 +146,7 @@ public class SessionService {
 
   @Transactional
   public SessionInfo autoAssignSeat(Long userId, Long studyCafeId) {
-    if (redisService.hasSessionByUserId(userId)) {
-      throw new IllegalStateException("이미 이용 중인 세션이 존재합니다.");
-    }
+    validateSession(userId, studyCafeId);
 
     User user = userStoreService.findByIdOrThrow(userId);
 
@@ -225,5 +221,16 @@ public class SessionService {
     session.setSeat(seat);
     session.setStatus(SessionStatus.ASSIGNED);
     return session;
+  }
+
+  private void validateSession(Long userId, Long studyCafeId) {
+    UserTimePass timePass = userTimePassStoreService.findById(new UserTimePassId(studyCafeId, userId));
+    if (timePass == null || timePass.getLeftTime() <= 0) {
+      throw new IllegalStateException("시간권이 존재하지 않거나 남은 시간이 없습니다.");
+    }
+
+    if (redisService.hasSessionByUserId(userId)) {
+      throw new IllegalStateException("이미 이용 중인 세션이 존재합니다.");
+    }
   }
 }
