@@ -17,9 +17,9 @@ spring:
     #     format_sql: true
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/seatly
-    username: yejiyoon
-    driver-class-name: org.postgresql.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
   data:
     redis:
