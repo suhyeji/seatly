@@ -2,6 +2,7 @@ package com.seatly.seatly.service;
 
 import java.util.List;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -20,6 +21,7 @@ import com.seatly.seatly.dto.user.UserPasswordPut;
 import com.seatly.seatly.dto.user.UserPatch;
 import com.seatly.seatly.dto.user.UserPost;
 import com.seatly.seatly.dto.user.UserTimePassInfo;
+import com.seatly.seatly.global.exception.DuplicateException;
 import com.seatly.seatly.store.SessionStoreService;
 import com.seatly.seatly.store.UserStoreService;
 import com.seatly.seatly.store.UserStudyCafeLinkStoreService;
@@ -39,14 +41,18 @@ public class UserService {
   private final PasswordEncoder passwordEncoder;
 
   public void signUp(UserPost model) {
-    User user = new User();
-    user.setName(model.getName());
-    user.setEmail(model.getEmail());
-    user.setPhone(model.getPhone());
-    user.setRole(model.getRole());
-    user.setPassword(passwordEncoder.encode(model.getPassword()));
-    user.setImageUrl(model.getImageUrl());
-    userStoreService.save(user);
+    try {
+      User user = new User();
+      user.setName(model.getName());
+      user.setEmail(model.getEmail());
+      user.setPhone(model.getPhone());
+      user.setRole(model.getRole());
+      user.setPassword(passwordEncoder.encode(model.getPassword()));
+      user.setImageUrl(model.getImageUrl());
+      userStoreService.save(user);
+    } catch (DataIntegrityViolationException e) {
+      throw new DuplicateException("이미 존재하는 휴대폰 번호입니다.");
+    }
   }
 
   public Pair<Long, UserInfo> login(LoginRequest request) {
